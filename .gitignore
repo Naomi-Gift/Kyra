@@ -1,0 +1,21 @@
+# Next.js
+.next/
+out/
+
+# Node
+node_modules/
+agent/node_modules/
+
+# Foundry
+contracts/out/
+contracts/cache/
+contracts/.gas-snapshot
+
+# Env
+.env
+.env.local
+agent/.env
+
+# Misc
+*.log
+.DS_Store

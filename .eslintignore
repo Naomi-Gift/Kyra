@@ -1,0 +1,4 @@
+agent/
+contracts/
+.next/
+node_modules/
