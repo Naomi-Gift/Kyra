@@ -6,36 +6,20 @@ import {IChoreVault} from "../interfaces/IChoreVault.sol";
 /**
  * @title  GroupManager
  * @notice Library encapsulating all savings-group state CRUD.
- *         Imported and used-as by ChoreVault.
+ *         Every function operates on a `mapping(uint256 => IChoreVault.Group)`.
  */
 library GroupManager {
-    // ─── Constants ────────────────────────────────────────────────────────────
 
-    /// @notice Minimum number of members in a valid group.
-    uint256 public constant MIN_MEMBERS = 2;
-
-    /// @notice Maximum number of members in a valid group.
-    uint256 public constant MAX_MEMBERS = 50;
-
-    /// @notice Minimum cycle interval (1 day in seconds).
+    uint256 public constant MIN_MEMBERS  = 2;
+    uint256 public constant MAX_MEMBERS  = 50;
     uint256 public constant MIN_INTERVAL = 1 days;
-
-    /// @notice Maximum cycle interval (365 days in seconds).
     uint256 public constant MAX_INTERVAL = 365 days;
-
-    // ─── Type alias ───────────────────────────────────────────────────────────
-
-    /// @dev Re-export the Group struct from IChoreVault so callers only import one file.
-    using GroupManager for mapping(uint256 => IChoreVault.Group);
 
     // ─── Validation ───────────────────────────────────────────────────────────
 
     /**
      * @notice Validate group-creation parameters.
-     *         Reverts with the appropriate IChoreVault custom error on failure.
-     * @param members      Proposed member list.
-     * @param amount       Contribution amount per cycle.
-     * @param intervalDays Cycle length in days.
+     *         O(n²) duplicate check is acceptable for the 50-member cap.
      */
     function validateCreation(
         address[] calldata members,
@@ -44,12 +28,12 @@ library GroupManager {
     ) internal pure {
         uint256 len = members.length;
         if (len < MIN_MEMBERS || len > MAX_MEMBERS) revert IChoreVault.InvalidGroupSize();
-        if (amount == 0) revert IChoreVault.InvalidAmount();
+        if (amount == 0)                             revert IChoreVault.InvalidAmount();
 
         uint256 interval = intervalDays * 1 days;
-        if (interval < MIN_INTERVAL || interval > MAX_INTERVAL) revert IChoreVault.InvalidInterval();
+        if (interval < MIN_INTERVAL || interval > MAX_INTERVAL)
+            revert IChoreVault.InvalidInterval();
 
-        // Check for zero addresses and duplicates
         for (uint256 i = 0; i < len; ) {
             if (members[i] == address(0)) revert IChoreVault.ZeroAddress();
             for (uint256 j = i + 1; j < len; ) {
@@ -62,14 +46,7 @@ library GroupManager {
 
     // ─── CRUD ─────────────────────────────────────────────────────────────────
 
-    /**
-     * @notice Write a new group into storage.
-     * @param groups      The groups mapping.
-     * @param groupId     The ID slot to write.
-     * @param members     Validated member list (calldata).
-     * @param amount      Contribution amount per cycle.
-     * @param intervalDays Cycle length in days.
-     */
+    /// @notice Write a new group into storage.
     function create(
         mapping(uint256 => IChoreVault.Group) storage groups,
         uint256 groupId,
@@ -80,24 +57,19 @@ library GroupManager {
         IChoreVault.Group storage g = groups[groupId];
         uint256 interval = intervalDays * 1 days;
 
-        // Push members one-by-one (required for Solidity storage arrays)
         for (uint256 i = 0; i < members.length; ) {
             g.members.push(members[i]);
             unchecked { ++i; }
         }
-
-        g.amount          = amount;
-        g.interval        = interval;
-        g.nextCollection  = block.timestamp + interval;
-        g.rotationIndex   = 0;
-        g.active          = true;
+        g.amount         = amount;
+        g.interval       = interval;
+        g.nextCollection = block.timestamp + interval;
+        g.rotationIndex  = 0;
+        g.active         = true;
+        g.pendingRelease = 0;
     }
 
-    /**
-     * @notice Advance the collection timestamp by one interval.
-     * @param groups  The groups mapping.
-     * @param groupId The target group.
-     */
+    /// @notice Advance `nextCollection` by one interval.
     function advanceCollection(
         mapping(uint256 => IChoreVault.Group) storage groups,
         uint256 groupId
@@ -105,11 +77,7 @@ library GroupManager {
         groups[groupId].nextCollection = block.timestamp + groups[groupId].interval;
     }
 
-    /**
-     * @notice Advance the rotation index to the next member, wrapping around.
-     * @param groups  The groups mapping.
-     * @param groupId The target group.
-     */
+    /// @notice Advance `rotationIndex` to the next member, wrapping around.
     function advanceRotation(
         mapping(uint256 => IChoreVault.Group) storage groups,
         uint256 groupId
@@ -119,12 +87,9 @@ library GroupManager {
     }
 
     /**
-     * @notice Remove a member from a group using swap-and-pop.
-     *         Fixes rotationIndex if necessary.
+     * @notice Remove a member via swap-and-pop.
+     *         Fixes `rotationIndex` if it points past the end of the new array.
      *         Disbands the group if fewer than MIN_MEMBERS remain.
-     * @param groups  The groups mapping.
-     * @param groupId The target group.
-     * @param member  The address to remove.
      */
     function removeMember(
         mapping(uint256 => IChoreVault.Group) storage groups,
@@ -139,33 +104,23 @@ library GroupManager {
             if (g.members[i] == member) { idx = i; break; }
             unchecked { ++i; }
         }
-        // Member must exist (caller is responsible for pre-checking)
         require(idx != type(uint256).max, "GroupManager: not a member");
 
-        // Swap-and-pop
         g.members[idx] = g.members[len - 1];
         g.members.pop();
 
-        // Fix rotationIndex:
-        // If rotationIndex pointed to the removed slot or the swapped-in element,
-        // clamp to valid range.
         if (g.members.length == 0) {
             g.rotationIndex = 0;
         } else if (g.rotationIndex >= g.members.length) {
             g.rotationIndex = 0;
         }
 
-        // Disband if too few members remain
         if (g.members.length < MIN_MEMBERS) {
             disband(groups, groupId);
         }
     }
 
-    /**
-     * @notice Mark a group as inactive (disbanded).
-     * @param groups  The groups mapping.
-     * @param groupId The target group.
-     */
+    /// @notice Mark a group as inactive.
     function disband(
         mapping(uint256 => IChoreVault.Group) storage groups,
         uint256 groupId
@@ -175,25 +130,19 @@ library GroupManager {
 
     // ─── Views ────────────────────────────────────────────────────────────────
 
-    /**
-     * @notice Returns true if `account` is a member of the group.
-     */
     function isMember(
         mapping(uint256 => IChoreVault.Group) storage groups,
         uint256 groupId,
         address account
     ) internal view returns (bool) {
-        address[] storage members = groups[groupId].members;
-        for (uint256 i = 0; i < members.length; ) {
-            if (members[i] == account) return true;
+        address[] storage m = groups[groupId].members;
+        for (uint256 i = 0; i < m.length; ) {
+            if (m[i] == account) return true;
             unchecked { ++i; }
         }
         return false;
     }
 
-    /**
-     * @notice Returns the address that will receive the next pot release.
-     */
     function currentRecipient(
         mapping(uint256 => IChoreVault.Group) storage groups,
         uint256 groupId
@@ -202,9 +151,6 @@ library GroupManager {
         return g.members[g.rotationIndex];
     }
 
-    /**
-     * @notice Returns the maximum pot size (members × amount) for one cycle.
-     */
     function expectedPotSize(
         mapping(uint256 => IChoreVault.Group) storage groups,
         uint256 groupId
@@ -213,9 +159,6 @@ library GroupManager {
         return g.members.length * g.amount;
     }
 
-    /**
-     * @notice Returns true if `block.timestamp` has reached `nextCollection`.
-     */
     function isDueForCollection(
         mapping(uint256 => IChoreVault.Group) storage groups,
         uint256 groupId

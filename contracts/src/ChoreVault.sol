@@ -8,17 +8,15 @@ import {GroupManager}  from "./libraries/GroupManager.sol";
 import {TrustRegistry} from "./libraries/TrustRegistry.sol";
 import {ExitVoting}    from "./libraries/ExitVoting.sol";
 
-// ─── Inline ReentrancyGuard (no OpenZeppelin dependency) ──────────────────────
+// ─── Inline ReentrancyGuard ───────────────────────────────────────────────────
 abstract contract ReentrancyGuard {
-    uint256 private constant _NOT_ENTERED = 1;
-    uint256 private constant _ENTERED     = 2;
-    uint256 private _status;
-    constructor() { _status = _NOT_ENTERED; }
+    uint256 private constant _NOT = 1;
+    uint256 private constant _IN  = 2;
+    uint256 private _s;
+    constructor() { _s = _NOT; }
     modifier nonReentrant() {
-        require(_status != _ENTERED, "reentrant");
-        _status = _ENTERED;
-        _;
-        _status = _NOT_ENTERED;
+        require(_s != _IN, "reentrant");
+        _s = _IN; _; _s = _NOT;
     }
 }
 
@@ -32,32 +30,63 @@ interface IERC20 {
 
 /**
  * @title  ChoreVault
+ * @author ChoreAgent
  * @notice Trustless rotating savings circles (ajo / susu / chama) on Celo.
- *         Idle funds earn yield via Aave v3 between collection and release.
  *
- * Architecture: thin orchestrator — all business logic lives in the three
- * library modules (GroupManager, TrustRegistry, ExitVoting).
+ *  Lifecycle per group
+ *  ────────────────────
+ *  1. Anyone calls `createGroup` — sets up members, amount, interval.
+ *  2. Every member calls `approve(vault, amount)` on cUSD once.
+ *  3. Agent calls `collect(groupId)` when the interval elapses:
+ *       - Pulls cUSD from each member via transferFrom (failures are skipped,
+ *         not reverted — the whole tx never rolls back for one bad member).
+ *       - Deposits collected total to Aave for yield.
+ *       - Records the deposited amount in `group.pendingRelease`.
+ *  4. Agent calls `release(groupId)`:
+ *       - Requires `group.pendingRelease > 0` (ensures collect ran first).
+ *       - Withdraws the per-group Aave balance, pays recipient, emits event.
+ *       - Advances rotation index.
+ *  5. Repeat until everyone has received the pot, then restart or disband.
+ *
+ *  Safety properties
+ *  ──────────────────
+ *  - Each group tracks its own Aave deposit in `pendingRelease`.
+ *    Multiple concurrent groups do not share a single Aave position.
+ *  - Release is gated on `pendingRelease > 0` — no collect, no release.
+ *  - Agent key rotation: agent can self-rotate; owner has emergency override.
+ *  - No funds are held in the contract between collect and depositToAave.
+ *  - All external ERC-20 calls check return values.
  */
 contract ChoreVault is AgentAuth, ReentrancyGuard, IChoreVault {
 
-    // ─── Library bindings ─────────────────────────────────────────────────────
     using GroupManager  for mapping(uint256 => IChoreVault.Group);
     using TrustRegistry for mapping(address => uint256);
     using ExitVoting    for mapping(uint256 => mapping(address => ExitVoting.Ballot));
 
     // ─── Storage ──────────────────────────────────────────────────────────────
-    mapping(uint256 => IChoreVault.Group)                        private _groups;
-    mapping(address => uint256)                                  private _trustScores;
-    mapping(uint256 => mapping(address => ExitVoting.Ballot))    private _exitBallots;
+
+    mapping(uint256 => IChoreVault.Group)                     private _groups;
+    mapping(address => uint256)                               private _trustScores;
+    mapping(uint256 => mapping(address => ExitVoting.Ballot)) private _exitBallots;
     uint256 private _groupCount;
 
     IERC20    public immutable cUSD;
     IAavePool public immutable aavePool;
 
     // ─── Constructor ──────────────────────────────────────────────────────────
-    constructor(address _agent, address _cUSD, address _aavePool)
-        AgentAuth(_agent)
-    {
+
+    /**
+     * @param _agent     Off-chain automation wallet (cannot be zero).
+     * @param _owner     Owner / emergency key (cannot be zero, can equal deployer).
+     * @param _cUSD      Celo Dollar ERC-20 address.
+     * @param _aavePool  Aave v3 Pool proxy address.
+     */
+    constructor(
+        address _agent,
+        address _owner,
+        address _cUSD,
+        address _aavePool
+    ) AgentAuth(_agent, _owner) {
         if (_cUSD     == address(0)) revert ZeroAddress();
         if (_aavePool == address(0)) revert ZeroAddress();
         cUSD     = IERC20(_cUSD);
@@ -65,6 +94,7 @@ contract ChoreVault is AgentAuth, ReentrancyGuard, IChoreVault {
     }
 
     // ─── createGroup ──────────────────────────────────────────────────────────
+
     /// @inheritdoc IChoreVault
     function createGroup(
         address[] calldata members,
@@ -86,11 +116,12 @@ contract ChoreVault is AgentAuth, ReentrancyGuard, IChoreVault {
     }
 
     // ─── collect ──────────────────────────────────────────────────────────────
+
     /// @inheritdoc IChoreVault
     function collect(uint256 groupId) external onlyAgent nonReentrant {
-        if (groupId >= _groupCount)                revert GroupNotFound();
-        if (!_groups[groupId].active)              revert GroupInactive();
-        if (!_groups.isDueForCollection(groupId))  revert TooEarlyToCollect();
+        if (groupId >= _groupCount)               revert GroupNotFound();
+        if (!_groups[groupId].active)             revert GroupInactive();
+        if (!_groups.isDueForCollection(groupId)) revert TooEarlyToCollect();
 
         address[] storage members = _groups[groupId].members;
         uint256           amount  = _groups[groupId].amount;
@@ -99,7 +130,7 @@ contract ChoreVault is AgentAuth, ReentrancyGuard, IChoreVault {
         for (uint256 i = 0; i < members.length; ) {
             address m = members[i];
 
-            // Low-level call: one member failure must not revert the whole tx
+            // Low-level call so one member's failure cannot revert the whole tx.
             (bool ok, bytes memory ret) = address(cUSD).call(
                 abi.encodeWithSelector(IERC20.transferFrom.selector, m, address(this), amount)
             );
@@ -118,29 +149,44 @@ contract ChoreVault is AgentAuth, ReentrancyGuard, IChoreVault {
             unchecked { ++i; }
         }
 
-        if (total > 0) _depositToAave(total);
+        if (total > 0) {
+            // Track per-group deposit so release() only withdraws what this group put in.
+            _groups[groupId].pendingRelease += total;
+            _depositToAave(total);
+        }
+
         _groups.advanceCollection(groupId);
     }
 
     // ─── release ──────────────────────────────────────────────────────────────
+
     /// @inheritdoc IChoreVault
     function release(uint256 groupId) external onlyAgent nonReentrant {
         if (groupId >= _groupCount)   revert GroupNotFound();
         if (!_groups[groupId].active) revert GroupInactive();
 
+        uint256 pending = _groups[groupId].pendingRelease;
+        if (pending == 0) revert NothingToRelease();
+
+        // Reset before external calls (CEI pattern)
+        _groups[groupId].pendingRelease = 0;
+
         uint256 principal = _groups.expectedPotSize(groupId);
-        uint256 total     = _withdrawFromAave();
+        uint256 total     = _withdrawFromAave(pending);
         uint256 yld       = total > principal ? total - principal : 0;
         address recipient = _groups.currentRecipient(groupId);
 
-        bool sent = cUSD.transfer(recipient, total);
-        require(sent, "ChoreVault: transfer failed");
+        // Reset approval to 0 before re-approve (some tokens require this)
+        cUSD.approve(address(aavePool), 0);
+
+        if (!cUSD.transfer(recipient, total)) revert TransferFailed();
         emit PotReleased(groupId, recipient, principal, yld, total);
 
         _groups.advanceRotation(groupId);
     }
 
     // ─── requestExit ──────────────────────────────────────────────────────────
+
     /// @inheritdoc IChoreVault
     function requestExit(uint256 groupId) external {
         if (!_groups.isMember(groupId, msg.sender)) revert NotAMember();
@@ -149,6 +195,7 @@ contract ChoreVault is AgentAuth, ReentrancyGuard, IChoreVault {
     }
 
     // ─── voteExit ─────────────────────────────────────────────────────────────
+
     /// @inheritdoc IChoreVault
     function voteExit(uint256 groupId, address member, bool approve) external {
         if (!_groups.isMember(groupId, msg.sender))             revert NotAMember();
@@ -172,6 +219,7 @@ contract ChoreVault is AgentAuth, ReentrancyGuard, IChoreVault {
     }
 
     // ─── Views ────────────────────────────────────────────────────────────────
+
     /// @inheritdoc IChoreVault
     function getTrustScore(address member) external view returns (uint256) {
         return TrustRegistry.get(_trustScores, member);
@@ -186,11 +234,20 @@ contract ChoreVault is AgentAuth, ReentrancyGuard, IChoreVault {
             uint256 interval,
             uint256 nextCollection,
             uint256 rotationIndex,
-            bool    active
+            bool    active,
+            uint256 pendingRelease
         )
     {
         IChoreVault.Group storage g = _groups[groupId];
-        return (g.members, g.amount, g.interval, g.nextCollection, g.rotationIndex, g.active);
+        return (
+            g.members,
+            g.amount,
+            g.interval,
+            g.nextCollection,
+            g.rotationIndex,
+            g.active,
+            g.pendingRelease
+        );
     }
 
     /// @inheritdoc IChoreVault
@@ -202,12 +259,16 @@ contract ChoreVault is AgentAuth, ReentrancyGuard, IChoreVault {
     }
 
     // ─── Private ──────────────────────────────────────────────────────────────
+
     function _depositToAave(uint256 amount) private {
         cUSD.approve(address(aavePool), amount);
         aavePool.supply(address(cUSD), amount, address(this), 0);
     }
 
-    function _withdrawFromAave() private returns (uint256) {
-        return aavePool.withdraw(address(cUSD), type(uint256).max, address(this));
+    /// @dev Withdraws exactly `amount` from Aave (not type(uint256).max).
+    ///      Using the recorded `pendingRelease` value ensures each group only
+    ///      withdraws what it deposited.
+    function _withdrawFromAave(uint256 amount) private returns (uint256 received) {
+        received = aavePool.withdraw(address(cUSD), amount, address(this));
     }
 }

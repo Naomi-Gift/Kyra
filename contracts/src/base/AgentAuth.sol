@@ -5,54 +5,63 @@ import {IChoreVault} from "../interfaces/IChoreVault.sol";
 
 /**
  * @title  AgentAuth
- * @notice Abstract base that stores the agent address and exposes the
- *         `onlyAgent` modifier.  Inheriting contracts must pass the initial
- *         agent address to the constructor.
+ * @notice Abstract base that stores the agent and owner addresses and exposes:
+ *           - `onlyAgent` / `onlyOwner` modifiers
+ *           - `rotateAgent`          — the agent rotates its own key
+ *           - `emergencyRotateAgent` — the owner can rotate the agent
+ *                                      (recovery if agent key is lost)
+ *           - `transferOwnership`    — the owner hands off ownership
  *
- *  The agent is the off-chain automation wallet authorised to call
- *  `collect()` and `release()`.  It can rotate its own key via
- *  `updateAgent()`.
+ * @dev   `AgentRotated` is declared here rather than in IChoreVault because
+ *         Solidity does not allow emitting events via an interface type prefix
+ *         (`emit IChoreVault.AgentRotated(...)` is invalid).  ChoreVault
+ *         inherits AgentAuth and therefore inherits this event.
  */
 abstract contract AgentAuth {
-    // ─── Storage ──────────────────────────────────────────────────────────────
 
-    /// @notice The currently registered agent address.
+    /// @notice The off-chain automation wallet.
     address public agent;
 
-    // ─── Events ───────────────────────────────────────────────────────────────
+    /// @notice The privileged owner / emergency recovery address.
+    address public owner;
 
-    /// @notice Emitted whenever the agent address is updated.
-    event AgentUpdated(address indexed oldAgent, address indexed newAgent);
+    /// @notice Emitted whenever the agent address changes.
+    event AgentRotated(address indexed oldAgent, address indexed newAgent);
 
-    // ─── Constructor ──────────────────────────────────────────────────────────
-
-    /**
-     * @param _agent  The initial agent address.  Must not be the zero address.
-     */
-    constructor(address _agent) {
+    constructor(address _agent, address _owner) {
         if (_agent == address(0)) revert IChoreVault.ZeroAddress();
+        if (_owner == address(0)) revert IChoreVault.ZeroAddress();
         agent = _agent;
+        owner = _owner;
     }
 
-    // ─── Modifier ─────────────────────────────────────────────────────────────
-
-    /// @dev Reverts with `OnlyAgent` if the caller is not the registered agent.
     modifier onlyAgent() {
         if (msg.sender != agent) revert IChoreVault.OnlyAgent();
         _;
     }
 
-    // ─── Functions ────────────────────────────────────────────────────────────
+    modifier onlyOwner() {
+        if (msg.sender != owner) revert IChoreVault.OnlyOwner();
+        _;
+    }
 
-    /**
-     * @notice Rotate the agent address.  Only the current agent may call this,
-     *         preventing a compromised owner from locking out the agent.
-     * @param newAgent  The replacement agent address.  Must not be zero.
-     */
-    function updateAgent(address newAgent) external onlyAgent {
+    /// @notice The agent rotates its own key.
+    function rotateAgent(address newAgent) external onlyAgent {
         if (newAgent == address(0)) revert IChoreVault.ZeroAddress();
-        address old = agent;
+        emit AgentRotated(agent, newAgent);
         agent = newAgent;
-        emit AgentUpdated(old, newAgent);
+    }
+
+    /// @notice The owner can rotate the agent key even if the agent key is lost.
+    function emergencyRotateAgent(address newAgent) external onlyOwner {
+        if (newAgent == address(0)) revert IChoreVault.ZeroAddress();
+        emit AgentRotated(agent, newAgent);
+        agent = newAgent;
+    }
+
+    /// @notice Transfer ownership to a new address.
+    function transferOwnership(address newOwner) external onlyOwner {
+        if (newOwner == address(0)) revert IChoreVault.ZeroAddress();
+        owner = newOwner;
     }
 }

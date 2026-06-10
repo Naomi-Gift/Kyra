@@ -1,224 +1,218 @@
 /**
- * Core agent logic.
+ * Core agent logic — ChoreVault edition.
  *
  * runAllGroups()
- *   ├─ Fetch total group count from contract
- *   ├─ For each group:
- *   │   ├─ Skip if status ≠ Active
- *   │   ├─ Skip if nextCycleAt > now
- *   │   ├─ Simulate (eth_call) before broadcasting
- *   │   └─ Send runCycle(groupId) transaction
- *   └─ Post summary via notify()
+ *   ├─ Read total group count from groupCount()
+ *   ├─ For each groupId:
+ *   │   ├─ Read group via getGroup()
+ *   │   ├─ Skip if not active
+ *   │   ├─ collect() if block.timestamp >= nextCollection
+ *   │   │   └─ simulate → broadcast → wait 1 confirmation
+ *   │   └─ release() if pendingRelease > 0
+ *   │       └─ simulate → broadcast → wait 1 confirmation
+ *   └─ Send Telegram summary
  */
 
-import { parseAbiItem, formatUnits } from "viem";
+import { formatUnits, decodeEventLog } from "viem";
 import { publicClient, walletClient, account } from "./chain.js";
 import { config } from "./config.js";
-import { CHORE_AGENT_ABI } from "./abi.js";
+import { CHORE_VAULT_ABI } from "./abi.js";
 import { notify } from "./notify.js";
 import { logger } from "./logger.js";
 
-// GroupStatus enum mirrors the Solidity enum
-const enum GroupStatus {
-  Active     = 0,
-  Collecting = 1,
-  Completed  = 2,
-  Paused     = 3,
-}
-
-type CycleResult = {
-  groupId:   bigint;
-  groupName: string;
-  success:   boolean;
-  txHash?:   `0x${string}`;
-  error?:    string;
-  potAmount?: bigint;
+type GroupResult = {
+  groupId:  bigint;
+  collected: boolean;
+  released:  boolean;
+  collectTx?: `0x${string}`;
+  releaseTx?: `0x${string}`;
+  potTotal?:  bigint;
   recipient?: string;
+  error?:     string;
 };
+
+// ─── Entry point ──────────────────────────────────────────────────────────────
 
 export async function runAllGroups(): Promise<void> {
   const startedAt = Date.now();
-  logger.info("Agent cycle starting…");
+  logger.info("Agent cycle starting");
 
-  // ── Verify agent identity ─────────────────────────────────────────────────
+  // Verify we are the registered agent
   const registeredAgent = await publicClient.readContract({
-    address: config.contractAddress,
-    abi:     CHORE_AGENT_ABI,
-    functionName: "agentAddress",
+    address:      config.contractAddress,
+    abi:          CHORE_VAULT_ABI,
+    functionName: "agent",
   });
 
   if (registeredAgent.toLowerCase() !== account.address.toLowerCase()) {
-    logger.error(
-      { registered: registeredAgent, ours: account.address },
-      "Agent address mismatch — aborting"
-    );
-    await notify("⚠️ *ChoreAgent*: agent address mismatch. Check deployment.");
+    logger.error({ registeredAgent, ours: account.address }, "Agent address mismatch — aborting");
+    await notify("*ChoreAgent*: agent address mismatch. Check deployment.");
     return;
   }
 
-  // ── Fetch group count ─────────────────────────────────────────────────────
-  const groupCount = await publicClient.readContract({
+  // Fetch group count
+  const count = await publicClient.readContract({
     address:      config.contractAddress,
-    abi:          CHORE_AGENT_ABI,
-    functionName: "allGroups",
+    abi:          CHORE_VAULT_ABI,
+    functionName: "groupCount",
   });
 
-  logger.info({ groupCount: groupCount.toString() }, "Groups found");
+  logger.info({ count: count.toString() }, "Groups found");
+  if (count === 0n) { logger.info("No groups yet"); return; }
 
-  if (groupCount === 0n) {
-    logger.info("No groups yet. Sleeping.");
-    return;
-  }
+  const now     = BigInt(Math.floor(Date.now() / 1000));
+  const results: GroupResult[] = [];
 
-  const now      = BigInt(Math.floor(Date.now() / 1000));
-  const results: CycleResult[] = [];
-
-  // ── Process each group ────────────────────────────────────────────────────
-  for (let id = 0n; id < groupCount; id++) {
+  for (let id = 0n; id < count; id++) {
     const result = await processGroup(id, now);
     if (result) results.push(result);
   }
 
-  // ── Summary ───────────────────────────────────────────────────────────────
-  const elapsed   = ((Date.now() - startedAt) / 1000).toFixed(1);
-  const succeeded = results.filter(r => r.success).length;
-  const failed    = results.filter(r => !r.success).length;
-  const skipped   = Number(groupCount) - results.length;
+  // Summary
+  const elapsed  = ((Date.now() - startedAt) / 1000).toFixed(1);
+  const actions  = results.filter(r => r.collected || r.released).length;
+  const errors   = results.filter(r => r.error).length;
 
-  logger.info(
-    { succeeded, failed, skipped, elapsed: `${elapsed}s` },
-    "Agent cycle complete"
-  );
+  logger.info({ actions, errors, elapsed: `${elapsed}s` }, "Agent cycle complete");
 
   if (results.length === 0) return;
 
-  // Build notification message
   const lines = [
-    `⚡ *ChoreAgent ran* — ${new Date().toUTCString()}`,
-    ``,
-    `📊 Groups: ${groupCount} total · ${succeeded} cycled · ${failed} failed · ${skipped} skipped`,
-    ``,
+    `*ChoreAgent* ran — ${new Date().toUTCString()}`,
+    `Groups processed: ${actions} | Errors: ${errors}`,
+    "",
   ];
 
   for (const r of results) {
-    if (r.success) {
-      const pot = r.potAmount ? `$${formatUnits(r.potAmount, 18)}` : "—";
-      lines.push(`✅ *${r.groupName}* — pot ${pot} → \`${r.recipient?.slice(0, 10)}…\``);
-      lines.push(`   TX: \`${r.txHash}\``);
+    if (r.error) {
+      lines.push(`Group ${r.groupId}: ERROR — ${r.error}`);
     } else {
-      lines.push(`❌ *${r.groupName}* — ${r.error}`);
+      if (r.collected) lines.push(`Group ${r.groupId}: collected`);
+      if (r.released) {
+        const amt = r.potTotal ? `$${formatUnits(r.potTotal, 18)}` : "?";
+        lines.push(`Group ${r.groupId}: released ${amt} to ${r.recipient?.slice(0, 10)}...`);
+      }
     }
   }
 
   await notify(lines.join("\n"));
 }
 
-// ── Process a single group ─────────────────────────────────────────────────────
+// ─── Per-group processing ─────────────────────────────────────────────────────
 
-async function processGroup(
-  groupId: bigint,
-  now:     bigint
-): Promise<CycleResult | null> {
-  // Read group state
+async function processGroup(groupId: bigint, now: bigint): Promise<GroupResult | null> {
   const group = await publicClient.readContract({
     address:      config.contractAddress,
-    abi:          CHORE_AGENT_ABI,
+    abi:          CHORE_VAULT_ABI,
     functionName: "getGroup",
     args:         [groupId],
   });
 
-  const [name,,,,,lastCycleAt, currentRound, status] = group;
+  const [, , , nextCollection, , active, pendingRelease] = group;
 
-  // Skip non-active groups
-  if (Number(status) !== GroupStatus.Active) {
-    logger.debug({ groupId: groupId.toString(), status }, "Skipping group (not active)");
+  if (!active) {
+    logger.debug({ groupId: groupId.toString() }, "Group inactive — skipping");
     return null;
   }
 
-  // Check if cycle is due
-  const nextCycle = await publicClient.readContract({
+  const result: GroupResult = { groupId, collected: false, released: false };
+
+  // ── Collect if due ──────────────────────────────────────────────────────────
+  if (now >= nextCollection) {
+    const collectResult = await sendTx(groupId, "collect");
+    if (collectResult.error) {
+      result.error = collectResult.error;
+      return result;
+    }
+    result.collected  = true;
+    result.collectTx  = collectResult.hash;
+  }
+
+  // ── Release if funds are waiting ────────────────────────────────────────────
+  // Re-read pendingRelease after collect (may have just been populated)
+  const updatedGroup = await publicClient.readContract({
     address:      config.contractAddress,
-    abi:          CHORE_AGENT_ABI,
-    functionName: "nextCycleAt",
+    abi:          CHORE_VAULT_ABI,
+    functionName: "getGroup",
     args:         [groupId],
   });
+  const [, , , , , , updatedPending] = updatedGroup;
 
-  if (now < nextCycle) {
-    const secsLeft = Number(nextCycle - now);
-    logger.debug(
-      { groupId: groupId.toString(), name, secsLeft },
-      "Too early — skipping"
-    );
-    return null;
+  if (updatedPending > 0n) {
+    const releaseResult = await sendTx(groupId, "release");
+    if (releaseResult.error) {
+      result.error = releaseResult.error;
+      return result;
+    }
+    result.released   = true;
+    result.releaseTx  = releaseResult.hash;
+    result.potTotal   = releaseResult.potTotal;
+    result.recipient  = releaseResult.recipient;
   }
 
-  logger.info({ groupId: groupId.toString(), name, round: currentRound }, "Running cycle");
+  return result.collected || result.released ? result : null;
+}
 
-  // ── Simulate first ───────────────────────────────────────────────────────
+// ─── Simulate + broadcast ─────────────────────────────────────────────────────
+
+async function sendTx(
+  groupId: bigint,
+  fn: "collect" | "release"
+): Promise<{ hash?: `0x${string}`; potTotal?: bigint; recipient?: string; error?: string }> {
+  // Simulate first
   try {
     await publicClient.simulateContract({
       address:      config.contractAddress,
-      abi:          CHORE_AGENT_ABI,
-      functionName: "runCycle",
+      abi:          CHORE_VAULT_ABI,
+      functionName: fn,
       args:         [groupId],
       account:      account.address,
     });
   } catch (simErr: unknown) {
-    const errMsg = simErr instanceof Error ? simErr.message : String(simErr);
-    logger.error({ groupId: groupId.toString(), name, error: errMsg }, "Simulation failed");
-    return { groupId, groupName: name, success: false, error: `Simulation: ${errMsg}` };
+    const msg = simErr instanceof Error ? simErr.message : String(simErr);
+    logger.warn({ groupId: groupId.toString(), fn, error: msg }, "Simulation failed — skipping");
+    return { error: `${fn} simulation failed: ${msg}` };
   }
 
-  // ── Broadcast ────────────────────────────────────────────────────────────
+  // Broadcast
   try {
-    const txHash = await walletClient.writeContract({
+    const hash = await walletClient.writeContract({
       address:      config.contractAddress,
-      abi:          CHORE_AGENT_ABI,
-      functionName: "runCycle",
+      abi:          CHORE_VAULT_ABI,
+      functionName: fn,
       args:         [groupId],
       account,
     });
 
-    logger.info({ groupId: groupId.toString(), name, txHash }, "runCycle submitted");
+    logger.info({ groupId: groupId.toString(), fn, hash }, "tx submitted");
 
-    // Wait for 1 confirmation
-    const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash, confirmations: 1 });
+    const receipt = await publicClient.waitForTransactionReceipt({ hash, confirmations: 1 });
 
     if (receipt.status !== "success") {
-      return { groupId, groupName: name, success: false, txHash, error: "Transaction reverted" };
+      return { hash, error: "transaction reverted on-chain" };
     }
 
-    // Parse CycleRun event from receipt to get pot amount & recipient
-    const cycleRunTopic = "CycleRun" as const;
-    let potAmount: bigint | undefined;
+    // Parse PotReleased event from receipt
+    let potTotal: bigint | undefined;
     let recipient: string | undefined;
 
-    for (const log of receipt.logs) {
-      try {
-        const { decodeEventLog } = await import("viem");
-        const decoded = decodeEventLog({
-          abi:    CHORE_AGENT_ABI,
-          data:   log.data,
-          topics: log.topics,
-        });
-        if (decoded.eventName === "CycleRun") {
-          potAmount = (decoded.args as { potAmount: bigint }).potAmount;
-          recipient = (decoded.args as { recipient: string }).recipient;
-        }
-      } catch {
-        // not a matching log — ignore
+    if (fn === "release") {
+      for (const log of receipt.logs) {
+        try {
+          const decoded = decodeEventLog({ abi: CHORE_VAULT_ABI, data: log.data, topics: log.topics });
+          if (decoded.eventName === "PotReleased") {
+            const args = decoded.args as { recipient: string; total: bigint };
+            potTotal  = args.total;
+            recipient = args.recipient;
+          }
+        } catch { /* not a matching log */ }
       }
     }
 
-    logger.info(
-      { groupId: groupId.toString(), name, txHash, potAmount: potAmount?.toString(), recipient },
-      "Cycle complete"
-    );
-
-    return { groupId, groupName: name, success: true, txHash, potAmount, recipient };
+    return { hash, potTotal, recipient };
   } catch (err: unknown) {
-    const errMsg = err instanceof Error ? err.message : String(err);
-    logger.error({ groupId: groupId.toString(), name, error: errMsg }, "runCycle failed");
-    return { groupId, groupName: name, success: false, error: errMsg };
+    const msg = err instanceof Error ? err.message : String(err);
+    logger.error({ groupId: groupId.toString(), fn, error: msg }, "tx failed");
+    return { error: msg };
   }
 }

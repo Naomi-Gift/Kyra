@@ -8,52 +8,53 @@ import {MockERC20} from "./MockERC20.sol";
  * @title  MockAavePool
  * @notice Simulates Aave v3 for tests.
  *
- *  supply()   — pulls tokens from msg.sender, records deposit under `onBehalfOf`.
- *  withdraw() — returns the recorded principal + YIELD_BONUS to `to`.
- *               The YIELD_BONUS is minted/pre-funded in setUp so the pool
- *               always has enough tokens.
+ *  supply()   — pulls `amount` from msg.sender, records under `onBehalfOf`.
+ *  withdraw() — returns exactly `amount` requested + YIELD_BONUS to `to`.
+ *               setUp() must pre-fund this contract with enough tokens
+ *               to cover the yield payments.
  */
 contract MockAavePool is IAavePool {
     MockERC20 public immutable token;
 
-    /// @notice Fixed simulated yield added on top of principal each withdraw.
     uint256 public constant YIELD_BONUS = 1e18;
 
-    /// @dev deposited[onBehalfOf] → amount deposited via supply()
+    // deposited[onBehalfOf] = total deposited via supply()
     mapping(address => uint256) public deposited;
 
     constructor(address _token) {
         token = MockERC20(_token);
     }
 
-    /// @inheritdoc IAavePool
     function supply(
         address asset,
         uint256 amount,
         address onBehalfOf,
         uint16  /*referralCode*/
     ) external override {
-        require(asset == address(token), "MockAavePool: wrong asset");
+        require(asset == address(token), "wrong asset");
         deposited[onBehalfOf] += amount;
-        bool ok = MockERC20(asset).transferFrom(msg.sender, address(this), amount);
-        require(ok, "MockAavePool: transferFrom failed");
+        require(
+            MockERC20(asset).transferFrom(msg.sender, address(this), amount),
+            "supply: transferFrom failed"
+        );
     }
 
-    /// @inheritdoc IAavePool
-    /// @dev `amount` is ignored — always returns full deposit + YIELD_BONUS.
+    /**
+     * @dev Returns the requested `amount` plus YIELD_BONUS.
+     *      `amount` should match what was deposited (ChoreVault passes
+     *      `pendingRelease`, not `type(uint256).max`).
+     */
     function withdraw(
         address asset,
-        uint256 /*amount*/,
+        uint256 amount,
         address to
     ) external override returns (uint256 returned) {
-        require(asset == address(token), "MockAavePool: wrong asset");
-        // The vault supplies on behalf of itself, so look up deposited[to]
-        // (ChoreVault passes `address(this)` as onBehalfOf in supply, and
-        //  `address(this)` as `to` in withdraw — both refer to the vault).
-        uint256 principal = deposited[to];
-        deposited[to] = 0;
-        returned = principal + YIELD_BONUS;
-        bool ok = MockERC20(asset).transfer(to, returned);
-        require(ok, "MockAavePool: transfer failed");
+        require(asset == address(token), "wrong asset");
+        deposited[to] = deposited[to] > amount ? deposited[to] - amount : 0;
+        returned = amount + YIELD_BONUS;
+        require(
+            MockERC20(asset).transfer(to, returned),
+            "withdraw: transfer failed"
+        );
     }
 }

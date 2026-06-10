@@ -9,7 +9,7 @@ function required(key: string): string {
 export const config = {
   rpcUrl:           required("CELO_RPC_URL"),
   agentPrivateKey:  required("AGENT_PRIVATE_KEY") as `0x${string}`,
-  contractAddress:  required("CHORE_AGENT_ADDRESS") as `0x${string}`,
+  contractAddress:  required("CHORE_VAULT_ADDRESS") as `0x${string}`,
   cUSDAddress:      required("CUSD_ADDRESS") as `0x${string}`,
   cronSchedule:     process.env.CRON_SCHEDULE ?? "0 * * * *",
   telegram: {

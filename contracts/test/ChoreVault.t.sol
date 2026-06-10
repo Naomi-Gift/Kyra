@@ -7,14 +7,9 @@ import {IChoreVault}  from "../src/interfaces/IChoreVault.sol";
 import {MockERC20}    from "../mocks/MockERC20.sol";
 import {MockAavePool} from "../mocks/MockAavePool.sol";
 
-/**
- * @title  ChoreVaultTest — integration tests
- * @notice Events are redeclared here so vm.expectEmit can match them
- *         without the test contract needing to implement IChoreVault.
- */
 contract ChoreVaultTest is Test {
 
-    // ── Redeclare events so vm.expectEmit works ──────────────────────────────
+    // Redeclare events for vm.expectEmit (avoids inheriting IChoreVault)
     event GroupCreated(uint256 indexed groupId, address indexed creator,
         address[] members, uint256 amount, uint256 interval);
     event Collected(uint256 indexed groupId, address indexed member, uint256 amount);
@@ -29,11 +24,11 @@ contract ChoreVaultTest is Test {
     event ExitRejected(uint256 indexed groupId, address indexed member);
     event GroupDisbanded(uint256 indexed groupId);
 
-    // ── Contracts ─────────────────────────────────────────────────────────────
     ChoreVault   vault;
     MockERC20    token;
     MockAavePool aave;
 
+    address owner = makeAddr("owner");
     address agent = makeAddr("agent");
     address a     = makeAddr("alice");
     address b     = makeAddr("bob");
@@ -44,32 +39,28 @@ contract ChoreVaultTest is Test {
     address[] members5;
 
     uint256 constant AMOUNT   = 100e18;
-    uint256 constant INTERVAL = 7;        // days
+    uint256 constant INTERVAL = 7;
     uint256 constant SEED     = 10_000e18;
-    uint256 constant YIELD    = 1e18;     // MockAavePool fixed bonus per withdraw
-
-    // ── setUp ─────────────────────────────────────────────────────────────────
+    uint256 constant YIELD    = 1e18;
 
     function setUp() public {
         token    = new MockERC20("Celo Dollar", "cUSD");
         aave     = new MockAavePool(address(token));
-        vault    = new ChoreVault(agent, address(token), address(aave));
+        vault    = new ChoreVault(agent, owner, address(token), address(aave));
         members5 = [a, b, c, d, e];
 
-        // Fund members and max-approve vault
         for (uint256 i; i < members5.length; i++) {
             token.mint(members5[i], SEED);
             vm.prank(members5[i]);
             token.approve(address(vault), type(uint256).max);
         }
-        // Pre-fund pool so it can always pay yield
         token.mint(address(aave), 1_000e18);
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
+    // ─── Helpers ──────────────────────────────────────────────────────────────
 
-    function _create() internal returns (uint256 gId) {
-        gId = vault.createGroup(members5, AMOUNT, INTERVAL);
+    function _create() internal returns (uint256) {
+        return vault.createGroup(members5, AMOUNT, INTERVAL);
     }
 
     function _warpAndCollect(uint256 gId) internal {
@@ -83,7 +74,12 @@ contract ChoreVaultTest is Test {
         vault.release(gId);
     }
 
-    // ── createGroup ───────────────────────────────────────────────────────────
+    function _rotationIndex(uint256 gId) internal view returns (uint256) {
+        (,,,, uint256 rot,,) = vault.getGroup(gId);
+        return rot;
+    }
+
+    // ─── createGroup ──────────────────────────────────────────────────────────
 
     function test_createGroup_succeeds() public {
         uint256 gId = _create();
@@ -91,12 +87,9 @@ contract ChoreVaultTest is Test {
         assertEq(vault.groupCount(), 1);
         for (uint256 i; i < members5.length; i++) {
             assertTrue(vault.isMember(gId, members5[i]));
-        }
-        assertFalse(vault.isMember(gId, address(0xDEAD)));
-        // Trust scores initialised at 100
-        for (uint256 i; i < members5.length; i++) {
             assertEq(vault.getTrustScore(members5[i]), 100);
         }
+        assertFalse(vault.isMember(gId, address(0xDEAD)));
     }
 
     function test_createGroup_revertInvalidMembers() public {
@@ -106,13 +99,12 @@ contract ChoreVaultTest is Test {
         vault.createGroup(one, AMOUNT, INTERVAL);
     }
 
-    // ── collect ───────────────────────────────────────────────────────────────
+    // ─── collect ──────────────────────────────────────────────────────────────
 
     function test_collect_success_allMembers() public {
         uint256 gId = _create();
         vm.warp(block.timestamp + INTERVAL * 1 days + 1);
 
-        // Expect TrustScoreUpdated for every member (old=100 → new=105)
         for (uint256 i; i < members5.length; i++) {
             vm.expectEmit(true, false, false, true);
             emit TrustScoreUpdated(members5[i], 100, 105);
@@ -121,17 +113,18 @@ contract ChoreVaultTest is Test {
         vm.prank(agent);
         vault.collect(gId);
 
-        // Balances reduced by AMOUNT
         for (uint256 i; i < members5.length; i++) {
             assertEq(token.balanceOf(members5[i]), SEED - AMOUNT);
             assertEq(vault.getTrustScore(members5[i]), 105);
         }
+
+        // pendingRelease should equal total collected
+        (,,,,,, uint256 pending) = vault.getGroup(gId);
+        assertEq(pending, AMOUNT * 5);
     }
 
     function test_collect_partialFailure() public {
         uint256 gId = _create();
-
-        // Revoke carol's allowance — her collection should fail gracefully
         vm.prank(c);
         token.approve(address(vault), 0);
 
@@ -143,13 +136,12 @@ contract ChoreVaultTest is Test {
         vm.prank(agent);
         vault.collect(gId);
 
-        // Others paid
         assertEq(token.balanceOf(a), SEED - AMOUNT);
-        assertEq(token.balanceOf(b), SEED - AMOUNT);
-        // Carol kept tokens
         assertEq(token.balanceOf(c), SEED);
-        // Carol penalised: 100 - 20 = 80
         assertEq(vault.getTrustScore(c), 80);
+
+        (,,,,,, uint256 pending) = vault.getGroup(gId);
+        assertEq(pending, AMOUNT * 4); // 4 of 5 collected
     }
 
     function test_collect_revertTooEarly() public {
@@ -173,13 +165,13 @@ contract ChoreVaultTest is Test {
         vault.collect(99);
     }
 
-    // ── release ───────────────────────────────────────────────────────────────
+    // ─── release ──────────────────────────────────────────────────────────────
 
     function test_release_sendsCorrectAmount() public {
         uint256 gId = _create();
         _warpAndCollect(gId);
 
-        uint256 balBefore = token.balanceOf(a); // alice is round-0 recipient
+        uint256 balBefore = token.balanceOf(a);
 
         vm.expectEmit(true, true, false, true);
         emit PotReleased(gId, a, AMOUNT * 5, YIELD, AMOUNT * 5 + YIELD);
@@ -193,8 +185,7 @@ contract ChoreVaultTest is Test {
         uint256 gId = _create();
         _warpAndCollect(gId);
         _release(gId);
-        (,,,, uint256 rot,) = vault.getGroup(gId);
-        assertEq(rot, 1); // bob is next
+        assertEq(_rotationIndex(gId), 1);
     }
 
     function test_release_revertNotAgent() public {
@@ -204,7 +195,37 @@ contract ChoreVaultTest is Test {
         vault.release(gId);
     }
 
-    // ── Exit flow ─────────────────────────────────────────────────────────────
+    function test_release_revertNothingToRelease() public {
+        uint256 gId = _create();
+        // No collect was called
+        vm.prank(agent);
+        vm.expectRevert(IChoreVault.NothingToRelease.selector);
+        vault.release(gId);
+    }
+
+    // ─── Emergency agent rotation ──────────────────────────────────────────────
+
+    function test_emergencyRotateAgent_byOwner() public {
+        address newAgent = makeAddr("newAgent");
+        vm.prank(owner);
+        vault.emergencyRotateAgent(newAgent);
+        assertEq(vault.agent(), newAgent);
+    }
+
+    function test_rotateAgent_byAgent() public {
+        address newAgent = makeAddr("newAgent");
+        vm.prank(agent);
+        vault.rotateAgent(newAgent);
+        assertEq(vault.agent(), newAgent);
+    }
+
+    function test_emergencyRotateAgent_revertNotOwner() public {
+        vm.prank(a);
+        vm.expectRevert(IChoreVault.OnlyOwner.selector);
+        vault.emergencyRotateAgent(makeAddr("x"));
+    }
+
+    // ─── Exit flow ────────────────────────────────────────────────────────────
 
     function test_exitFlow_approved() public {
         uint256 gId = _create();
@@ -212,14 +233,13 @@ contract ChoreVaultTest is Test {
         vm.prank(a);
         vault.requestExit(gId);
 
-        // 5-member group → totalEligible = 4 → majority = 3
         vm.prank(b); vault.voteExit(gId, a, true);
         vm.prank(c); vault.voteExit(gId, a, true);
 
         vm.expectEmit(true, true, false, false);
         emit ExitApproved(gId, a);
 
-        vm.prank(d); vault.voteExit(gId, a, true); // 3rd approve → resolves
+        vm.prank(d); vault.voteExit(gId, a, true);
 
         assertFalse(vault.isMember(gId, a));
     }
@@ -236,9 +256,9 @@ contract ChoreVaultTest is Test {
         vm.expectEmit(true, true, false, false);
         emit ExitRejected(gId, a);
 
-        vm.prank(d); vault.voteExit(gId, a, false); // 3rd reject → resolves
+        vm.prank(d); vault.voteExit(gId, a, false);
 
-        assertTrue(vault.isMember(gId, a)); // still a member
+        assertTrue(vault.isMember(gId, a));
     }
 
     function test_exitFlow_revertNotMember() public {
@@ -252,35 +272,28 @@ contract ChoreVaultTest is Test {
         uint256 gId = _create();
         vm.prank(a); vault.requestExit(gId);
         vm.prank(b); vault.voteExit(gId, a, true);
-
         vm.prank(b);
         vm.expectRevert(IChoreVault.AlreadyVoted.selector);
         vault.voteExit(gId, a, true);
     }
 
-    // ── Full 2-cycle flow ─────────────────────────────────────────────────────
+    // ─── Full 2-cycle flow ────────────────────────────────────────────────────
 
     function test_fullCycle_twoRounds() public {
         uint256 gId = _create();
 
-        // ─ Round 0: alice receives ────────────────────────────────────────────
+        // Round 0: alice receives
         _warpAndCollect(gId);
-
         uint256 aliceBefore = token.balanceOf(a);
         _release(gId);
         assertEq(token.balanceOf(a), aliceBefore + AMOUNT * 5 + YIELD, "round 0");
+        assertEq(_rotationIndex(gId), 1, "rot to bob");
 
-        (,,,, uint256 rot0,) = vault.getGroup(gId);
-        assertEq(rot0, 1, "rotation to bob");
-
-        // ─ Round 1: bob receives ──────────────────────────────────────────────
+        // Round 1: bob receives
         _warpAndCollect(gId);
-
         uint256 bobBefore = token.balanceOf(b);
         _release(gId);
         assertEq(token.balanceOf(b), bobBefore + AMOUNT * 5 + YIELD, "round 1");
-
-        (,,,, uint256 rot1,) = vault.getGroup(gId);
-        assertEq(rot1, 2, "rotation to carol");
+        assertEq(_rotationIndex(gId), 2, "rot to carol");
     }
 }

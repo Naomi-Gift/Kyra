@@ -44,7 +44,7 @@ contract DeployChoreVault is Script {
 
         vm.startBroadcast(deployerKey);
 
-        ChoreVault vault = new ChoreVault(agentAddress, cusd, aavePool);
+        ChoreVault vault = new ChoreVault(agentAddress, vm.addr(deployerKey), cusd, aavePool);
 
         vm.stopBroadcast();
 
