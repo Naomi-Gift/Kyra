@@ -16,26 +16,26 @@ export default function AppDashboard() {
 
   return (
     <PageTransition>
-      <div className="p-6 lg:p-8 space-y-6 min-h-screen">
+      <div className="min-h-screen space-y-5 px-4 pb-6 pt-20 sm:px-6 lg:p-8 lg:pt-8">
 
         {/* Top bar */}
         <motion.div
           initial={{ opacity: 0, y: -12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-          className="flex items-start justify-between"
+          className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between"
         >
           <div>
-            <h1 className="font-serif text-2xl font-bold text-white">Dashboard</h1>
+            <h1 className="font-serif text-2xl font-bold text-white sm:text-3xl">Dashboard</h1>
             <p className="text-white/35 text-sm font-sans mt-0.5">
               Good morning · Agent ran 11h ago
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex w-full items-center gap-3 sm:w-auto">
             <motion.button
               whileHover={{ scale: 1.08 }}
               whileTap={{ scale: 0.95 }}
-              className="relative p-2.5 glass rounded-xl text-white/40 hover:text-white transition-colors border border-white/6"
+              className="relative flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl border border-white/6 text-white/40 transition-colors glass hover:text-white"
             >
               <Bell className="w-4 h-4" />
               <motion.span
@@ -44,8 +44,8 @@ export default function AppDashboard() {
                 className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-gold-400"
               />
             </motion.button>
-            <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-              <Button variant="primary" size="md" onClick={() => setCreateOpen(true)}>
+            <motion.div className="flex-1 sm:flex-none" whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+              <Button variant="primary" size="md" onClick={() => setCreateOpen(true)} fullWidth>
                 <Plus className="w-4 h-4" />
                 New Group
               </Button>
@@ -57,8 +57,8 @@ export default function AppDashboard() {
         <DashboardStats />
 
         {/* Main grid */}
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-          <div className="xl:col-span-2 space-y-6">
+        <div className="grid grid-cols-1 gap-5 xl:grid-cols-3 xl:gap-6">
+          <div className="space-y-5 xl:col-span-2 xl:space-y-6">
             <SavingsChart />
             <TransactionFeed />
           </div>
@@ -73,7 +73,7 @@ export default function AppDashboard() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5, duration: 0.45 }}
           whileHover={{ scale: 1.005 }}
-          className="glass rounded-2xl p-4 flex items-center justify-between border border-white/5"
+          className="flex flex-col gap-4 rounded-2xl border border-white/5 p-4 glass sm:flex-row sm:items-center sm:justify-between"
         >
           <div className="flex items-center gap-3">
             <motion.div

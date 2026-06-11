@@ -75,7 +75,7 @@ export function Button({
       onClick={onClick}
       disabled={disabled || loading}
       className={clsx(
-        "inline-flex items-center justify-center gap-2",
+        "inline-flex min-h-10 items-center justify-center gap-2 whitespace-nowrap",
         "font-sans transition-all duration-200",
         "disabled:opacity-40 disabled:cursor-not-allowed",
         "select-none",

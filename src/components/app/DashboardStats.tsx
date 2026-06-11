@@ -60,7 +60,7 @@ const stats = [
 
 export function DashboardStats() {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4 xl:gap-4">
       {stats.map((stat, i) => (
         <motion.div
           key={stat.label}
@@ -71,7 +71,7 @@ export function DashboardStats() {
           <motion.div
             whileHover={{ y: -3, boxShadow: `0 16px 48px rgba(0,0,0,0.5), 0 0 0 1px ${stat.border}` }}
             transition={{ type: "spring", stiffness: 300, damping: 22 }}
-            className="glass rounded-2xl p-5 space-y-4 border border-white/6 h-full"
+            className="h-full rounded-2xl border border-white/6 p-4 space-y-3 glass sm:p-5 sm:space-y-4"
             style={{ backgroundColor: stat.accent }}
           >
             <div className="flex items-center justify-between">
@@ -88,7 +88,7 @@ export function DashboardStats() {
             </div>
 
             <div className="space-y-1">
-              <div className="font-serif text-3xl font-bold text-white">
+              <div className="font-serif text-2xl font-bold text-white sm:text-3xl">
                 <AnimatedCounter
                   value={stat.value}
                   prefix={stat.prefix}

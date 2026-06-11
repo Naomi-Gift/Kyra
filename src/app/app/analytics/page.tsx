@@ -13,11 +13,11 @@ const premiumMetrics = [
 
 export default function AnalyticsPage() {
   return (
-    <div className="p-6 lg:p-8 space-y-6">
+    <div className="space-y-5 px-4 pb-6 pt-20 sm:px-6 lg:p-8 lg:pt-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="font-serif text-2xl font-bold text-white">Analytics</h1>
+          <h1 className="font-serif text-2xl font-bold text-white sm:text-3xl">Analytics</h1>
           <p className="text-white/35 text-sm font-sans mt-0.5">
             Performance across all groups
           </p>
@@ -31,14 +31,14 @@ export default function AnalyticsPage() {
       <SavingsChart />
 
       {/* Metrics grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 lg:gap-4">
         {[
           { label: "Txns this month", value: 4820, prefix: "", suffix: "" },
           { label: "cUSD collected", value: 85400, prefix: "$", suffix: "" },
           { label: "Groups active", value: 47, prefix: "", suffix: "" },
           { label: "On-time rate", value: 98, prefix: "", suffix: "%" },
         ].map((m) => (
-          <div key={m.label} className="glass rounded-2xl p-4 space-y-2">
+          <div key={m.label} className="rounded-2xl p-4 space-y-2 glass">
             <p className="text-white/30 text-xs font-sans tracking-widest uppercase">
               {m.label}
             </p>
@@ -56,8 +56,8 @@ export default function AnalyticsPage() {
       </div>
 
       {/* x402 Premium section */}
-      <div className="glass-gold rounded-2xl p-6 space-y-4">
-        <div className="flex items-center justify-between">
+      <div className="rounded-2xl p-4 space-y-4 glass-gold sm:p-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h3 className="font-serif text-lg font-semibold text-white">
               Premium Analytics
@@ -68,7 +68,7 @@ export default function AnalyticsPage() {
           </div>
           <Badge variant="gold">x402</Badge>
         </div>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {premiumMetrics.map((m) => (
             <div
               key={m.label}

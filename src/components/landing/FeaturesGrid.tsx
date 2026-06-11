@@ -93,7 +93,7 @@ export function FeaturesGrid() {
   const inView = useInView(ref, { once: true, amount: 0.1 });
 
   return (
-    <section className="py-28 px-6">
+    <section className="px-4 py-16 sm:px-6 sm:py-28">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <motion.div
@@ -101,7 +101,7 @@ export function FeaturesGrid() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.5 }}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="text-center space-y-4 mb-20"
+          className="mb-12 space-y-4 text-center sm:mb-20"
         >
           <p className="text-white/30 text-xs font-sans tracking-[0.3em] uppercase">
             Why it works
@@ -119,7 +119,7 @@ export function FeaturesGrid() {
         </motion.div>
 
         {/* Bento grid */}
-        <div ref={ref} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div ref={ref} className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           {features.map((feat, i) => (
             <motion.div
               key={feat.title}
@@ -143,7 +143,7 @@ export function FeaturesGrid() {
                   backgroundColor: feat.accent,
                 }}
                 transition={{ type: "spring", stiffness: 300, damping: 22 }}
-                className="h-full rounded-2xl glass p-6 space-y-4 border border-white/6"
+                className="h-full rounded-2xl border border-white/6 p-5 space-y-4 glass sm:p-6"
                 style={{ backgroundColor: "rgba(255,255,255,0.02)" }}
               >
                 {/* Animated spotlight on hover */}
@@ -154,7 +154,7 @@ export function FeaturesGrid() {
                   }}
                 />
 
-                <div className="relative flex items-start justify-between">
+                <div className="relative flex items-start justify-between gap-3">
                   <motion.div
                     whileHover={{ scale: 1.12, rotate: [0, -8, 8, 0] }}
                     transition={{ duration: 0.3 }}

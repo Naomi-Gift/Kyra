@@ -37,7 +37,7 @@ export function CreateGroupModal({ open, onClose }: CreateGroupModalProps) {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.25 }}
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+          className="fixed inset-0 z-[100] flex items-end justify-center p-0 sm:items-center sm:p-4"
           onClick={(e) => e.target === e.currentTarget && onClose()}
         >
           {/* Backdrop */}
@@ -55,10 +55,10 @@ export function CreateGroupModal({ open, onClose }: CreateGroupModalProps) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 16 }}
             transition={{ type: "spring", stiffness: 320, damping: 26 }}
-            className="relative w-full max-w-lg glass-gold rounded-2xl shadow-card overflow-hidden"
+            className="relative max-h-[92vh] w-full overflow-hidden rounded-t-2xl shadow-card glass-gold sm:max-w-lg sm:rounded-2xl"
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-white/5">
+            <div className="flex items-center justify-between border-b border-white/5 p-4 sm:p-6">
               <div>
                 <h2 className="font-serif text-xl font-semibold text-white">
                   Create a savings group
@@ -98,7 +98,7 @@ export function CreateGroupModal({ open, onClose }: CreateGroupModalProps) {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
                   transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-                  className="p-6 space-y-5"
+                  className="max-h-[72vh] space-y-5 overflow-y-auto p-4 sm:p-6"
                 >
                   <div className="space-y-2">
                     <label className="text-white/45 text-xs font-sans tracking-widest uppercase">Group Name</label>
@@ -185,7 +185,7 @@ export function CreateGroupModal({ open, onClose }: CreateGroupModalProps) {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 20 }}
                   transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-                  className="p-6 space-y-5"
+                  className="max-h-[72vh] space-y-5 overflow-y-auto p-4 sm:p-6"
                 >
                   <div className="space-y-2">
                     <label className="text-white/45 text-xs font-sans tracking-widest uppercase">Member wallet addresses</label>
@@ -249,7 +249,7 @@ export function CreateGroupModal({ open, onClose }: CreateGroupModalProps) {
                     </div>
                   </div>
 
-                  <div className="flex gap-3">
+                  <div className="flex flex-col gap-3 sm:flex-row">
                     <motion.div whileHover={{ scale: 1.01 }} className="flex-1">
                       <Button variant="outline" size="lg" fullWidth onClick={() => setStep(1)}>Back</Button>
                     </motion.div>

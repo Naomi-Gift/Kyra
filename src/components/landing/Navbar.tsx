@@ -36,7 +36,7 @@ export function Navbar() {
           : "bg-transparent"
       )}
     >
-      <nav className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+      <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 group">
           <motion.div
@@ -48,7 +48,7 @@ export function Navbar() {
           </motion.div>
           <motion.span
             whileHover={{ x: 2 }}
-            className="font-serif font-bold text-white text-lg tracking-tight"
+            className="font-serif font-bold text-white text-base tracking-tight sm:text-lg"
           >
             ChoreAgent
           </motion.span>
@@ -90,10 +90,13 @@ export function Navbar() {
 
         {/* Mobile toggle */}
         <motion.button
+          type="button"
           whileTap={{ scale: 0.9 }}
-          className="md:hidden p-2 text-white/60 hover:text-white"
-          onClick={() => setMobileOpen(!mobileOpen)}
-          aria-label="Toggle menu"
+          className="md:hidden flex h-11 w-11 items-center justify-center rounded-xl text-white/70 hover:bg-white/5 hover:text-white"
+          onClick={() => setMobileOpen((open) => !open)}
+          aria-label={mobileOpen ? "Close menu" : "Open menu"}
+          aria-expanded={mobileOpen}
+          aria-controls="mobile-navigation"
         >
           <AnimatePresence mode="wait" initial={false}>
             {mobileOpen ? (
@@ -113,18 +116,19 @@ export function Navbar() {
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
+            id="mobile-navigation"
             key="drawer"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-            className="md:hidden overflow-hidden glass border-t border-white/5"
+            className="md:hidden overflow-hidden border-t border-white/5 glass"
           >
             <motion.div
               initial="hidden"
               animate="show"
               variants={{ show: { transition: { staggerChildren: 0.07 } }, hidden: {} }}
-              className="px-6 py-4 space-y-1"
+              className="space-y-1 px-4 py-4 sm:px-6"
             >
               {navLinks.map((link) => (
                 <motion.div
@@ -134,7 +138,7 @@ export function Navbar() {
                   <Link
                     href={link.href}
                     onClick={() => setMobileOpen(false)}
-                    className="block px-3 py-2.5 text-white/60 hover:text-white text-sm font-sans rounded-xl hover:bg-white/5 transition-colors"
+                    className="block rounded-xl px-3 py-3 text-sm font-sans text-white/60 transition-colors hover:bg-white/5 hover:text-white"
                   >
                     {link.label}
                   </Link>
@@ -144,7 +148,7 @@ export function Navbar() {
                 variants={{ hidden: { opacity: 0, x: -12 }, show: { opacity: 1, x: 0 } }}
                 className="pt-2"
               >
-                <Link href="/app">
+                <Link href="/app" onClick={() => setMobileOpen(false)}>
                   <Button variant="primary" size="sm" fullWidth>Launch App</Button>
                 </Link>
               </motion.div>

@@ -58,7 +58,7 @@ export function TechStack() {
   const trustInView = useInView(trustRef, { once: true, amount: 0.4 });
 
   return (
-    <section className="py-28 px-6 relative overflow-hidden">
+    <section className="relative overflow-hidden px-4 py-16 sm:px-6 sm:py-28">
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-24
         bg-gradient-to-b from-transparent via-white/10 to-transparent" />
 
@@ -69,7 +69,7 @@ export function TechStack() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.5 }}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="text-center space-y-4 mb-16"
+          className="mb-12 space-y-4 text-center sm:mb-16"
         >
           <p className="text-white/30 text-xs font-sans tracking-[0.3em] uppercase">
             What powers ChoreAgent
@@ -100,7 +100,7 @@ export function TechStack() {
                   boxShadow: `0 20px 50px ${glowMap[p.color]}`,
                 }}
                 transition={{ type: "spring", stiffness: 280, damping: 20 }}
-                className="glass rounded-2xl p-5 space-y-4 border border-white/6 h-full"
+              className="h-full rounded-2xl border border-white/6 p-5 space-y-4 glass"
               >
                 <p className={`text-xs font-sans tracking-widest uppercase ${labelMap[p.color]}`}>
                   {p.layer}
@@ -129,12 +129,12 @@ export function TechStack() {
           initial={{ opacity: 0, y: 24 }}
           animate={trustInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="mt-10 glass rounded-2xl p-6 border border-white/5"
+          className="mt-8 rounded-2xl border border-white/5 p-4 glass sm:mt-10 sm:p-6"
         >
           <p className="text-white/25 text-xs font-sans tracking-[0.3em] uppercase mb-6 text-center">
             Trusted by
           </p>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 divide-y sm:divide-y-0 sm:divide-x divide-white/5">
+          <div className="grid grid-cols-1 gap-2 divide-y divide-white/5 sm:grid-cols-3 sm:gap-6 sm:divide-x sm:divide-y-0">
             {trustedBy.map((t, i) => (
               <motion.div
                 key={t.name}

@@ -34,11 +34,11 @@ export function HeroSection() {
   return (
     <section
       ref={containerRef}
-      className="relative min-h-screen flex flex-col items-center justify-center px-6 pt-32 pb-24 overflow-hidden"
+      className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-4 pb-16 pt-28 sm:px-6 sm:pb-24 sm:pt-32"
     >
       {/* Parallax orb 1 */}
       <motion.div
-        className="absolute top-24 right-16 w-96 h-96 opacity-[0.12] -z-10"
+        className="absolute right-[-7rem] top-20 -z-10 h-72 w-72 opacity-[0.08] sm:right-16 sm:h-96 sm:w-96 sm:opacity-[0.12]"
         animate={{ rotate: 360 }}
         transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
         style={{
@@ -50,7 +50,7 @@ export function HeroSection() {
       />
       {/* Parallax orb 2 */}
       <motion.div
-        className="absolute bottom-32 left-12 w-72 h-72 opacity-[0.08] -z-10"
+        className="absolute bottom-24 left-[-6rem] -z-10 h-56 w-56 opacity-[0.06] sm:left-12 sm:h-72 sm:w-72 sm:opacity-[0.08]"
         animate={{ rotate: -360 }}
         transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
         style={{
@@ -74,7 +74,7 @@ export function HeroSection() {
 
       <motion.div
         style={{ y: yContent, opacity }}
-        className="max-w-5xl mx-auto text-center space-y-10 will-change-transform"
+        className="mx-auto max-w-5xl space-y-8 text-center will-change-transform sm:space-y-10"
       >
         {/* Social proof pill */}
         <motion.div
@@ -86,7 +86,7 @@ export function HeroSection() {
         >
           <motion.div
             whileHover={{ scale: 1.04 }}
-            className="flex items-center gap-2 glass rounded-full px-4 py-2 border border-white/8 cursor-default"
+            className="flex max-w-full flex-wrap items-center justify-center gap-2 rounded-full border border-white/8 px-3 py-2 glass sm:px-4"
           >
             <div className="flex -space-x-1.5">
               {["bg-gold-400", "bg-violet-400", "bg-mint-400", "bg-coral-400"].map(
@@ -128,12 +128,12 @@ export function HeroSection() {
         >
           <motion.h1
             variants={fadeUp}
-            className="font-serif text-[clamp(2.8rem,7vw,6rem)] font-bold leading-[1.05] tracking-tight text-white"
+            className="font-serif text-[clamp(2.45rem,14vw,6rem)] font-bold leading-[1.02] tracking-tight text-white"
           >
             Save together.
           </motion.h1>
           <motion.div variants={fadeUp} className="relative inline-block">
-            <h1 className="font-serif text-[clamp(2.8rem,7vw,6rem)] font-bold leading-[1.05] tracking-tight">
+            <h1 className="font-serif text-[clamp(2.45rem,14vw,6rem)] font-bold leading-[1.02] tracking-tight">
               <span className="text-shimmer">Get paid</span>
               {" "}
               <span className="font-serif italic font-normal text-white/45">
@@ -150,7 +150,7 @@ export function HeroSection() {
           </motion.div>
           <motion.p
             variants={fadeUp}
-            className="max-w-2xl mx-auto text-white/50 text-lg leading-relaxed font-sans font-light pt-2"
+            className="mx-auto max-w-2xl pt-1 text-base leading-relaxed text-white/50 font-sans font-light sm:pt-2 sm:text-lg"
           >
             ChoreAgent is a savings circle app where every member contributes,
             everyone gets a turn with the full pot, and nothing is left to trust
@@ -164,7 +164,7 @@ export function HeroSection() {
           initial="hidden"
           animate="show"
           transition={{ delay: 0.65 }}
-          className="flex flex-wrap items-center justify-center gap-4"
+          className="flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center sm:gap-4"
         >
           <div ref={primaryRef}>
             <Link href="/app">
@@ -172,7 +172,7 @@ export function HeroSection() {
                 whileHover={{ scale: 1.04 }}
                 whileTap={{ scale: 0.97 }}
               >
-                <Button variant="primary" size="xl" className="group relative overflow-hidden">
+                <Button variant="primary" size="xl" className="group relative w-full overflow-hidden sm:w-auto">
                   <motion.span
                     className="absolute inset-0 bg-white/15"
                     initial={{ x: "-100%", skewX: "-15deg" }}
@@ -187,7 +187,7 @@ export function HeroSection() {
           </div>
           <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
             <Link href="#how-it-works">
-              <Button variant="outline" size="xl">
+              <Button variant="outline" size="xl" className="w-full sm:w-auto">
                 See how it works
               </Button>
             </Link>
@@ -199,7 +199,7 @@ export function HeroSection() {
           variants={staggerContainer(0.1, 0.8)}
           initial="hidden"
           animate="show"
-          className="flex flex-wrap items-center justify-center gap-6 text-white/30 text-xs font-sans"
+          className="flex flex-col items-center justify-center gap-3 text-white/30 text-xs font-sans sm:flex-row sm:flex-wrap sm:gap-6"
         >
           {["No signup required", "Zero fees", "Non-custodial"].map((point) => (
             <motion.span
@@ -218,7 +218,7 @@ export function HeroSection() {
           variants={staggerContainer(0.12, 0.9)}
           initial="hidden"
           animate="show"
-          className="grid grid-cols-3 gap-4 max-w-2xl mx-auto"
+          className="mx-auto grid max-w-2xl grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4"
         >
           {stats.map((stat) => (
             <motion.div
@@ -233,7 +233,7 @@ export function HeroSection() {
                 },
               }}
               whileHover={{ scale: 1.05, y: -2 }}
-              className="glass rounded-2xl p-4 text-center space-y-1 cursor-default"
+              className="rounded-2xl p-4 text-center space-y-1 cursor-default glass"
             >
               <div className="text-gold-400 font-serif text-2xl font-bold">
                 <AnimatedCounter
@@ -255,7 +255,7 @@ export function HeroSection() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 2, duration: 1 }}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
+        className="absolute bottom-4 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 sm:flex"
       >
         <motion.div
           animate={{ y: [0, 8, 0] }}

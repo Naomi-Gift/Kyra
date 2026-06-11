@@ -19,17 +19,17 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="p-6 lg:p-8 space-y-6 max-w-2xl">
+    <div className="max-w-2xl space-y-5 px-4 pb-6 pt-20 sm:px-6 lg:p-8 lg:pt-8">
       {/* Header */}
       <div>
-        <h1 className="font-serif text-2xl font-bold text-white">Settings</h1>
+        <h1 className="font-serif text-2xl font-bold text-white sm:text-3xl">Settings</h1>
         <p className="text-white/35 text-sm font-sans mt-0.5">
           Notifications, security, and preferences
         </p>
       </div>
 
       {/* Notifications */}
-      <div className="glass rounded-2xl p-5 space-y-4">
+      <div className="rounded-2xl p-4 space-y-4 glass sm:p-5">
         <div className="flex items-center gap-2">
           <Bell className="w-4 h-4 text-white/40" />
           <h3 className="font-serif text-base font-semibold text-white">Notifications</h3>
@@ -42,7 +42,7 @@ export default function SettingsPage() {
             { key: "agentError", label: "Agent errors", desc: "If a collection fails" },
             { key: "telegram", label: "Telegram bot", desc: "Get summaries via Telegram" },
           ].map((item) => (
-            <div key={item.key} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
+            <div key={item.key} className="flex items-center justify-between gap-4 py-3 border-b border-white/5 last:border-0">
               <div>
                 <p className="text-white/70 text-sm font-sans">{item.label}</p>
                 <p className="text-white/25 text-xs font-sans">{item.desc}</p>
@@ -74,7 +74,7 @@ export default function SettingsPage() {
       </div>
 
       {/* Security */}
-      <div className="glass rounded-2xl p-5 space-y-4">
+      <div className="rounded-2xl p-4 space-y-4 glass sm:p-5">
         <div className="flex items-center gap-2">
           <Shield className="w-4 h-4 text-white/40" />
           <h3 className="font-serif text-base font-semibold text-white">Security</h3>
@@ -85,10 +85,10 @@ export default function SettingsPage() {
             { label: "Contract", value: "0xAbCd…EfGh (Celo)", badge: "Audited" },
             { label: "Auth method", value: "ERC-2771 forwarder", badge: null },
           ].map((row) => (
-            <div key={row.label} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
+            <div key={row.label} className="flex flex-col gap-2 py-3 border-b border-white/5 last:border-0 sm:flex-row sm:items-center sm:justify-between">
               <span className="text-white/30 text-sm font-sans">{row.label}</span>
-              <div className="flex items-center gap-2">
-                <span className="text-white/50 text-xs font-mono">{row.value}</span>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="break-all text-white/50 text-xs font-mono">{row.value}</span>
                 {row.badge && (
                   <Badge variant="mint" className="text-[10px]">{row.badge}</Badge>
                 )}
@@ -99,7 +99,7 @@ export default function SettingsPage() {
       </div>
 
       {/* MiniPay */}
-      <div className="glass rounded-2xl p-5 space-y-4">
+      <div className="rounded-2xl p-4 space-y-4 glass sm:p-5">
         <div className="flex items-center gap-2">
           <Smartphone className="w-4 h-4 text-white/40" />
           <h3 className="font-serif text-base font-semibold text-white">MiniPay</h3>
@@ -110,7 +110,7 @@ export default function SettingsPage() {
         </p>
       </div>
 
-      <Button variant="primary" size="lg" onClick={handleSave}>
+      <Button variant="primary" size="lg" onClick={handleSave} className="w-full sm:w-auto">
         <Save className="w-4 h-4" />
         Save Settings
       </Button>

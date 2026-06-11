@@ -49,11 +49,11 @@ export function SavingsChart() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-      className="glass rounded-2xl p-6 space-y-4 border border-white/6"
+      className="rounded-2xl border border-white/6 p-4 space-y-4 glass sm:p-6"
     >
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <div>
+        <div className="min-w-0">
           <h3 className="font-serif text-lg font-semibold text-white">Savings Growth</h3>
           <p className="text-white/30 text-xs font-sans">Total cUSD saved across all groups</p>
         </div>
@@ -82,7 +82,7 @@ export function SavingsChart() {
       </div>
 
       {/* Legend */}
-      <div className="flex items-center gap-5 text-xs font-sans text-white/30">
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs font-sans text-white/30">
         <span className="flex items-center gap-1.5">
           <span className="w-8 h-px bg-gold-400 inline-block" /> Savings
         </span>

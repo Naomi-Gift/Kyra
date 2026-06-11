@@ -10,7 +10,7 @@ export default function AppLayout({
     <div className="min-h-screen bg-obsidian-950">
       <GlowOrbs />
       <AppSidebar />
-      <main className="ml-60 min-h-screen">{children}</main>
+      <main className="min-h-screen pb-24 lg:ml-60 lg:pb-0">{children}</main>
     </div>
   );
 }

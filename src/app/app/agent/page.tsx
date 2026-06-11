@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { Bot, Play, Clock, CheckCircle2, AlertCircle, Terminal } from "lucide-react";
+import { Bot, Play, Clock, CheckCircle2, Terminal } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { toast } from "sonner";
@@ -47,11 +47,11 @@ export default function AgentPage() {
   };
 
   return (
-    <div className="p-6 lg:p-8 space-y-6">
+    <div className="space-y-5 px-4 pb-6 pt-20 sm:px-6 lg:p-8 lg:pt-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="font-serif text-2xl font-bold text-white">Agent</h1>
+          <h1 className="font-serif text-2xl font-bold text-white sm:text-3xl">Agent</h1>
           <p className="text-white/35 text-sm font-sans mt-0.5">
             ChoreAgent runtime status and logs
           </p>
@@ -61,6 +61,7 @@ export default function AgentPage() {
           size="md"
           loading={triggerLoading}
           onClick={handleManualRun}
+          className="w-full sm:w-auto"
         >
           <Play className="w-4 h-4" />
           Run Now
@@ -68,7 +69,7 @@ export default function AgentPage() {
       </div>
 
       {/* Status cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
         {[
           {
             icon: Bot,
@@ -111,8 +112,8 @@ export default function AgentPage() {
       </div>
 
       {/* Agent identity */}
-      <div className="glass-violet rounded-2xl p-5 space-y-3">
-        <div className="flex items-center justify-between">
+      <div className="rounded-2xl p-4 space-y-3 glass-violet sm:p-5">
+        <div className="flex items-center justify-between gap-3">
           <h3 className="font-serif text-base font-semibold text-white">
             Agent Identity
           </h3>
@@ -125,9 +126,9 @@ export default function AgentPage() {
             { label: "Auth method", value: "self-signed · EC-SECP256k1" },
             { label: "Allowed op", value: "collectFromMember() only" },
           ].map((row) => (
-            <div key={row.label} className="flex items-center justify-between text-sm">
+            <div key={row.label} className="flex flex-col gap-1 rounded-xl border border-white/5 bg-white/[0.02] p-3 text-sm sm:flex-row sm:items-center sm:justify-between sm:border-0 sm:bg-transparent sm:p-0">
               <span className="text-white/30 font-sans">{row.label}</span>
-              <span className="text-white/60 font-mono text-xs">{row.value}</span>
+              <span className="break-all text-white/60 font-mono text-xs sm:text-right">{row.value}</span>
             </div>
           ))}
         </div>
@@ -146,9 +147,9 @@ export default function AgentPage() {
             <div className="w-2.5 h-2.5 rounded-full bg-mint-500/50" />
           </div>
         </div>
-        <div className="p-4 space-y-1 font-mono text-xs max-h-72 overflow-y-auto">
+        <div className="max-h-80 space-y-2 overflow-y-auto p-3 font-mono text-xs sm:p-4">
           {agentLogs.map((log, i) => (
-            <div key={i} className="flex items-start gap-3">
+            <div key={i} className="flex items-start gap-2 sm:gap-3">
               <span className="text-white/20 flex-shrink-0">{log.time}</span>
               <span
                 className={`w-1.5 h-1.5 rounded-full flex-shrink-0 mt-1 ${logDot[log.type as keyof typeof logDot]}`}

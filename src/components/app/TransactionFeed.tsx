@@ -62,9 +62,9 @@ export function TransactionFeed() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-      className="glass rounded-2xl p-6 space-y-4 border border-white/6"
+      className="rounded-2xl border border-white/6 p-4 space-y-4 glass sm:p-6"
     >
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <h3 className="font-serif text-lg font-semibold text-white">Recent Activity</h3>
         <span className="flex items-center gap-1.5 text-mint-400 text-xs font-sans">
           <motion.span
@@ -90,7 +90,7 @@ export function TransactionFeed() {
                 exit={{ opacity: 0, x: -16, transition: { duration: 0.2 } }}
                 transition={{ type: "spring", stiffness: 350, damping: 28 }}
                 whileHover={{ x: 3, backgroundColor: "rgba(255,255,255,0.02)" }}
-                className="flex items-center gap-3 p-3 rounded-xl cursor-default"
+                className="flex items-center gap-3 rounded-xl p-2.5 cursor-default sm:p-3"
               >
                 <motion.div
                   whileHover={{ scale: 1.12 }}

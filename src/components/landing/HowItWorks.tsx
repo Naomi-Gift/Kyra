@@ -58,7 +58,7 @@ export function HowItWorks() {
   const lineInView = useInView(lineRef, { once: true, amount: 0.5 });
 
   return (
-    <section id="how-it-works" className="py-28 px-6 relative overflow-hidden">
+    <section id="how-it-works" className="relative overflow-hidden px-4 py-16 sm:px-6 sm:py-28">
       {/* Background accent */}
       <div className="absolute inset-0 -z-10 opacity-[0.015]"
         style={{
@@ -73,7 +73,7 @@ export function HowItWorks() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.5 }}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="text-center space-y-4 mb-24"
+          className="mb-12 space-y-4 text-center sm:mb-24"
         >
           <p className="text-white/30 text-xs font-sans tracking-[0.3em] uppercase">
             How it works
@@ -90,7 +90,7 @@ export function HowItWorks() {
         </motion.div>
 
         {/* Steps */}
-        <div ref={ref} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 relative">
+        <div ref={ref} className="relative grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4 lg:gap-5">
           {/* Animated connector line */}
           <div ref={lineRef} className="hidden lg:block absolute top-14 left-[12.5%] right-[12.5%] h-px">
             <motion.div
@@ -119,7 +119,7 @@ export function HowItWorks() {
                   boxShadow: `0 20px 60px ${step.glow}`,
                 }}
                 transition={{ type: "spring", stiffness: 300, damping: 22 }}
-                className={`h-full rounded-2xl border bg-gradient-to-b ${step.bg} ${step.border} p-6 space-y-4`}
+                className={`h-full rounded-2xl border bg-gradient-to-b ${step.bg} ${step.border} p-5 space-y-4 sm:p-6`}
               >
                 {/* Step number + icon */}
                 <div className="flex items-start justify-between">
@@ -169,12 +169,12 @@ export function HowItWorks() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.6, duration: 0.5 }}
-          className="mt-16 flex justify-center"
+          className="mt-10 flex justify-center sm:mt-16"
         >
           <motion.div
             animate={{ opacity: [0.4, 0.8, 0.4] }}
             transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-            className="inline-flex items-center gap-2 glass rounded-full px-5 py-2.5 text-white/30 text-xs font-sans border border-white/6"
+            className="inline-flex max-w-full items-center gap-2 rounded-full border border-white/6 px-4 py-2.5 text-center text-xs text-white/30 font-sans glass sm:px-5"
           >
             <motion.span
               animate={{ scale: [1, 1.4, 1] }}

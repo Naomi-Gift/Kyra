@@ -55,7 +55,7 @@ export function GroupsPanel() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <h2 className="font-serif text-xl font-semibold text-white">Your Groups</h2>
         <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}>
           <Button variant="secondary" size="sm">
@@ -79,29 +79,29 @@ export function GroupsPanel() {
                 onClick={() => setSelected(isOpen ? null : group.id)}
                 whileHover={{ scale: isOpen ? 1 : 1.01 }}
                 transition={{ type: "spring", stiffness: 350, damping: 28 }}
-                className={`glass rounded-2xl p-4 cursor-pointer border transition-all duration-300 ${
+                className={`rounded-2xl p-4 cursor-pointer border transition-all duration-300 glass ${
                   isOpen
                     ? "border-gold-500/25 shadow-[0_0_0_1px_rgba(251,191,36,0.15),0_8px_32px_rgba(251,191,36,0.06)]"
                     : "border-white/5 hover:border-white/12"
                 }`}
               >
                 {/* Group header */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex min-w-0 items-center gap-3">
                     <motion.div
                       whileHover={{ scale: 1.1 }}
                       className="w-10 h-10 rounded-xl bg-gradient-to-br from-gold-500/15 to-violet-500/15 flex items-center justify-center border border-white/8 text-lg"
                     >
                       {group.emoji}
                     </motion.div>
-                    <div>
-                      <p className="font-sans font-medium text-white text-sm">{group.name}</p>
+                    <div className="min-w-0">
+                      <p className="truncate font-sans font-medium text-white text-sm">{group.name}</p>
                       <p className="text-white/30 text-xs font-sans">
                         {group.members}/{group.maxMembers} members · ${group.amount}/cycle
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-shrink-0 items-center gap-2">
                     <Badge
                       variant={group.status === "active" ? "mint" : group.status === "collecting" ? "gold" : "default"}
                       dot
@@ -146,7 +146,7 @@ export function GroupsPanel() {
                         </div>
 
                         {/* Stats */}
-                        <div className="grid grid-cols-3 gap-2">
+                        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                           {[
                             { label: "Pot total",     value: `$${group.potTotal}` },
                             { label: "Next payout",   value: group.nextPayout     },

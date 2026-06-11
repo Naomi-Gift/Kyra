@@ -30,7 +30,7 @@ export function Footer() {
   const inView = useInView(ref, { once: true, amount: 0.2 });
 
   return (
-    <footer className="border-t border-white/5 py-16 px-6 relative overflow-hidden">
+    <footer className="relative overflow-hidden border-t border-white/5 px-4 py-12 sm:px-6 sm:py-16">
       {/* subtle top glow */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-px
         bg-gradient-to-r from-transparent via-gold-500/20 to-transparent" />
@@ -42,7 +42,7 @@ export function Footer() {
         animate={inView ? "show" : "hidden"}
         className="max-w-6xl mx-auto"
       >
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-12 mb-12">
+        <div className="mb-10 grid grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-5 md:gap-12">
           {/* Brand col */}
           <motion.div variants={fadeUp} className="md:col-span-2 space-y-4">
             <Link href="/" className="flex items-center gap-2 group w-fit">
@@ -97,12 +97,12 @@ export function Footer() {
         {/* Bottom bar */}
         <motion.div
           variants={fadeUp}
-          className="border-t border-white/5 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4"
+          className="flex flex-col items-start justify-between gap-4 border-t border-white/5 pt-6 sm:flex-row sm:items-center"
         >
           <p className="text-white/20 text-xs font-sans">
             © 2026 ChoreAgent. Built on Celo.
           </p>
-          <div className="flex items-center gap-6 text-white/20 text-xs font-sans">
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-white/20 text-xs font-sans">
             {["Privacy", "Terms", "Security"].map((l) => (
               <Link key={l} href="#" className="hover:text-white/50 transition-colors">
                 {l}

@@ -71,20 +71,20 @@ export function AgentActivity() {
   }, [latestId]);
 
   return (
-    <section className="py-28 px-6 relative overflow-hidden">
+    <section className="relative overflow-hidden px-4 py-16 sm:px-6 sm:py-28">
       {/* Faint mid-page glow */}
       <div className="pointer-events-none absolute inset-0 -z-10"
         style={{ background: "radial-gradient(ellipse 60% 40% at 50% 50%, rgba(139,92,246,0.04), transparent)" }} />
 
       <div ref={sectionRef} className="max-w-6xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+        <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-2 lg:gap-16">
 
           {/* ── Left: copy ───────────────────────────────── */}
           <motion.div
             variants={staggerContainer(0.1, 0)}
             initial="hidden"
             animate={inView ? "show" : "hidden"}
-            className="space-y-7"
+            className="space-y-6 sm:space-y-7"
           >
             <motion.p variants={fadeUp} className="text-white/30 text-xs font-sans tracking-[0.3em] uppercase">
               Always on
@@ -125,7 +125,7 @@ export function AgentActivity() {
             </motion.div>
 
             {/* Micro-stats */}
-            <motion.div variants={fadeUp} className="grid grid-cols-3 gap-3">
+            <motion.div variants={fadeUp} className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               {[
                 { icon: TrendingUp, label: "Collections", value: "14,820" },
                 { icon: CheckCircle2, label: "On-time rate", value: "98.2%" },
@@ -152,7 +152,7 @@ export function AgentActivity() {
             className="space-y-3"
           >
             {/* Feed header */}
-            <motion.div variants={fadeUp} className="flex items-center justify-between mb-2">
+            <motion.div variants={fadeUp} className="mb-2 flex items-center justify-between gap-3">
               <span className="text-white/30 text-xs font-sans tracking-widest uppercase">
                 Live activity
               </span>
@@ -179,7 +179,7 @@ export function AgentActivity() {
                       animate={{ opacity: 1 - i * 0.1, x: 0, scale: 1 - i * 0.008 }}
                       exit={{ opacity: 0, x: -24, scale: 0.95, transition: { duration: 0.25 } }}
                       transition={{ type: "spring", stiffness: 340, damping: 28 }}
-                      className={`flex items-center gap-3 glass rounded-xl p-3 border ${cfg.border}`}
+                      className={`flex items-start gap-3 rounded-xl border p-3 glass ${cfg.border}`}
                     >
                       <motion.div
                         whileHover={{ scale: 1.15, rotate: [0, -8, 8, 0] }}
@@ -189,13 +189,13 @@ export function AgentActivity() {
                         <cfg.icon className={`w-4 h-4 ${cfg.color}`} />
                       </motion.div>
 
-                      <div className="flex-1 min-w-0">
+                      <div className="min-w-0 flex-1">
                         <p className="text-white/70 text-sm font-sans truncate">
                           {item.message}
                         </p>
                       </div>
 
-                      <div className="flex items-center gap-2 flex-shrink-0">
+                      <div className="flex flex-shrink-0 flex-col items-end gap-1 sm:flex-row sm:items-center sm:gap-2">
                         {item.amount && (
                           <span className="text-gold-400 text-xs font-mono font-semibold">
                             {item.amount}
@@ -214,7 +214,7 @@ export function AgentActivity() {
             {/* Footer strip */}
             <motion.div
               variants={fadeUp}
-              className="glass rounded-xl p-3 text-center border border-white/5"
+              className="rounded-xl border border-white/5 p-3 text-center glass"
             >
               <span className="text-white/20 text-xs font-sans">
                 Fully automated · no manual steps · all on-chain

@@ -22,9 +22,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="grain">
-      <head />
-      <body className="font-sans antialiased">
+    <html lang="en" className="dark grain" suppressHydrationWarning>
+      <body className="font-sans antialiased" suppressHydrationWarning>
         {children}
         <Toaster
           theme="dark"
