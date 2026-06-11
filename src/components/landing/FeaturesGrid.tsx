@@ -17,7 +17,7 @@ const features = [
   {
     icon: Brain,
     title: "Runs itself",
-    desc: "Set your group up once. ChoreAgent handles every collection, rotation, and payout automatically — no reminders, no chasing.",
+    desc: "Set your group up once. Kyra handles every collection, rotation, and payout automatically — no reminders, no chasing.",
     badge: { label: "Automation", variant: "gold" as const },
     size: "large",
     accent: "rgba(251,191,36,0.06)",
@@ -35,7 +35,7 @@ const features = [
   {
     icon: Shield,
     title: "No one holds your money",
-    desc: "Funds move directly between members. ChoreAgent never holds a balance — it only has permission to collect what you approved.",
+    desc: "Funds move directly between members. Kyra never holds a balance — it only has permission to collect what you approved.",
     badge: { label: "Non-custodial", variant: "violet" as const },
     size: "normal",
     accent: "rgba(139,92,246,0.04)",
@@ -44,7 +44,7 @@ const features = [
   {
     icon: Lock,
     title: "Zero gas fees",
-    desc: "Members pay nothing in transaction fees. ChoreAgent handles gas so your savings stay whole.",
+    desc: "Members pay nothing in transaction fees. Kyra handles gas so your savings stay whole.",
     badge: { label: "Gasless", variant: "violet" as const },
     size: "normal",
     accent: "rgba(139,92,246,0.04)",
@@ -80,7 +80,7 @@ const features = [
   {
     icon: Wallet,
     title: "Works with any group",
-    desc: "Family, friends, colleagues. Set the amount, the schedule, and the members — ChoreAgent does the rest.",
+    desc: "Family, friends, colleagues. Set the amount, the schedule, and the members — Kyra does the rest.",
     badge: { label: "Flexible", variant: "default" as const },
     size: "normal",
     accent: "rgba(255,255,255,0.02)",
@@ -113,7 +113,7 @@ export function FeaturesGrid() {
             </span>
           </h2>
           <p className="max-w-xl mx-auto text-white/35 text-base font-light">
-            ChoreAgent removes every friction point that makes traditional savings
+            Kyra removes every friction point that makes traditional savings
             circles fall apart.
           </p>
         </motion.div>

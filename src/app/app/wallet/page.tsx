@@ -95,7 +95,7 @@ export default function WalletPage() {
       {/* Allowances */}
       <div className="rounded-2xl p-4 space-y-3 glass sm:p-5">
         <h3 className="font-serif text-base font-semibold text-white">
-          ChoreAgent Allowances
+          Kyra Allowances
         </h3>
         <p className="text-white/30 text-xs font-sans">
           Approved spending for automated collections

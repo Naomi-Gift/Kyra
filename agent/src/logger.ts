@@ -8,7 +8,7 @@ export const logger = pino({
       colorize:        true,
       translateTime:   "SYS:HH:MM:ss",
       ignore:          "pid,hostname",
-      messageFormat:   "[ChoreAgent] {msg}",
+      messageFormat:   "[Kyra] {msg}",
     },
   },
 });

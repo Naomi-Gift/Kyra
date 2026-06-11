@@ -2,8 +2,8 @@
 pragma solidity ^0.8.20;
 
 /**
- * @title  IChoreVault
- * @notice Canonical public ABI for ChoreVault.
+ * @title  IKyraVault
+ * @notice Canonical public ABI for KyraVault.
  *         All structs, events, custom errors, and external function signatures
  *         live here. No implementation.
  *
@@ -12,7 +12,7 @@ pragma solidity ^0.8.20;
  *         accepts this because a public variable auto-generates a getter that
  *         matches the view function signature.
  */
-interface IChoreVault {
+interface IKyraVault {
 
     // ─── Structs ──────────────────────────────────────────────────────────────
 

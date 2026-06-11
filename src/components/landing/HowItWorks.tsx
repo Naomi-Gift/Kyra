@@ -32,7 +32,7 @@ const steps = [
     icon: Repeat,
     title: "Collections run automatically",
     description:
-      "ChoreAgent collects from every member on schedule, every time — with zero reminders or manual steps.",
+      "Kyra collects from every member on schedule, every time — with zero reminders or manual steps.",
     bg: "from-mint-500/10 to-transparent",
     border: "border-mint-500/15",
     iconColor: "text-mint-400",

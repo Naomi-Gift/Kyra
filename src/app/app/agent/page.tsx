@@ -53,7 +53,7 @@ export default function AgentPage() {
         <div>
           <h1 className="font-serif text-2xl font-bold text-white sm:text-3xl">Agent</h1>
           <p className="text-white/35 text-sm font-sans mt-0.5">
-            ChoreAgent runtime status and logs
+            Kyra runtime status and logs
           </p>
         </div>
         <Button

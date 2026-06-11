@@ -50,7 +50,7 @@ export function Navbar() {
             whileHover={{ x: 2 }}
             className="font-serif font-bold text-white text-base tracking-tight sm:text-lg"
           >
-            ChoreAgent
+            Kyra
           </motion.span>
         </Link>
 

@@ -103,7 +103,7 @@ export function AgentActivity() {
             </motion.h2>
 
             <motion.p variants={fadeUp} className="text-white/40 text-base leading-relaxed font-light max-w-md">
-              Every day, ChoreAgent wakes up, checks your group's schedule,
+              Every day, Kyra wakes up, checks your group's schedule,
               collects from members, rotates the pot, and sends a plain-English
               summary. You don't lift a finger.
             </motion.p>

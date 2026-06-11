@@ -9,9 +9,9 @@ import {MockERC20} from "./MockERC20.sol";
  * @notice Simulates Aave v3 for tests.
  *
  *  supply()   — pulls `amount` from msg.sender, records under `onBehalfOf`.
- *  withdraw() — returns exactly `amount` requested + YIELD_BONUS to `to`.
- *               setUp() must pre-fund this contract with enough tokens
- *               to cover the yield payments.
+ *  withdraw() — if amount == type(uint256).max, returns full deposited balance
+ *               + YIELD_BONUS. Otherwise returns the exact amount requested.
+ *               setUp() must pre-fund this contract with YIELD_BONUS tokens.
  */
 contract MockAavePool is IAavePool {
     MockERC20 public immutable token;
@@ -29,7 +29,7 @@ contract MockAavePool is IAavePool {
         address asset,
         uint256 amount,
         address onBehalfOf,
-        uint16  /*referralCode*/
+        uint16 /*referralCode*/
     ) external override {
         require(asset == address(token), "wrong asset");
         deposited[onBehalfOf] += amount;
@@ -40,9 +40,9 @@ contract MockAavePool is IAavePool {
     }
 
     /**
-     * @dev Returns the requested `amount` plus YIELD_BONUS.
-     *      `amount` should match what was deposited (ChoreVault passes
-     *      `pendingRelease`, not `type(uint256).max`).
+     * @dev Matches real Aave behaviour:
+     *      - amount == type(uint256).max → withdraw full balance + yield
+     *      - otherwise                  → withdraw exact amount (no yield)
      */
     function withdraw(
         address asset,
@@ -50,8 +50,19 @@ contract MockAavePool is IAavePool {
         address to
     ) external override returns (uint256 returned) {
         require(asset == address(token), "wrong asset");
-        deposited[to] = deposited[to] > amount ? deposited[to] - amount : 0;
-        returned = amount + YIELD_BONUS;
+
+        if (amount == type(uint256).max) {
+            // Full withdrawal: principal + simulated yield
+            uint256 principal = deposited[to];
+            deposited[to] = 0;
+            returned = principal + YIELD_BONUS;
+        } else {
+            // Exact withdrawal (no yield bonus for partial)
+            require(deposited[to] >= amount, "insufficient deposited");
+            deposited[to] -= amount;
+            returned = amount;
+        }
+
         require(
             MockERC20(asset).transfer(to, returned),
             "withdraw: transfer failed"

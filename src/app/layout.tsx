@@ -3,14 +3,14 @@ import "./globals.css";
 import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
-  title: "ChoreAgent — AI Savings on Celo",
+  title: "Kyra — AI Savings on Celo",
   description:
-    "AI-powered savings agent on Celo. Join a group, approve a cUSD amount, and ChoreAgent automatically collects from every member and rotates the pot.",
+    "AI-powered savings agent on Celo. Join a group, approve a cUSD amount, and Kyra automatically collects from every member and rotates the pot.",
   icons: {
     icon: "/favicon.ico",
   },
   openGraph: {
-    title: "ChoreAgent",
+    title: "Kyra",
     description: "AI-powered savings agent on Celo",
     type: "website",
   },

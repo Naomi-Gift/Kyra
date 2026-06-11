@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {IChoreVault} from "../interfaces/IChoreVault.sol";
+import {IKyraVault} from "../interfaces/IKyraVault.sol";
 
 /**
  * @title  ExitVoting
@@ -9,8 +9,8 @@ import {IChoreVault} from "../interfaces/IChoreVault.sol";
  *         circle members.
  *
  *  Flow:
- *   1. A member calls requestExit() → ChoreVault calls open().
- *   2. Other members call voteExit() → ChoreVault calls vote().
+ *   1. A member calls requestExit() → KyraVault calls open().
+ *   2. Other members call voteExit() → KyraVault calls vote().
  *      vote() resolves immediately when a mathematical majority is guaranteed
  *      (either for or against), returning (resolved=true, passed=true/false).
  *   3. The ballot is closed once resolved.

@@ -72,7 +72,7 @@ export function TechStack() {
           className="mb-12 space-y-4 text-center sm:mb-16"
         >
           <p className="text-white/30 text-xs font-sans tracking-[0.3em] uppercase">
-            What powers ChoreAgent
+            What powers Kyra
           </p>
           <h2 className="font-serif text-[clamp(1.8rem,3.5vw,3rem)] font-bold text-white">
             Savings infrastructure you can{" "}

@@ -1,9 +1,9 @@
 /**
- * ChoreVault ABI — matches contracts/src/ChoreVault.sol exactly.
- * Regenerate with: forge inspect ChoreVault abi
+ * KyraVault ABI — matches contracts/src/KyraVault.sol exactly.
+ * Regenerate with: forge inspect KyraVault abi
  */
 
-export const CHORE_VAULT_ABI = [
+export const KYRA_VAULT_ABI = [
   // ── createGroup ────────────────────────────────────────────────────────────
   {
     name: "createGroup",

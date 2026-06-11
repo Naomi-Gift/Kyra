@@ -1,7 +1,7 @@
 {
-  "name": "choreagent-backend",
+  "name": "kyra-backend",
   "version": "1.0.0",
-  "description": "Off-chain automation agent for ChoreAgent savings circles",
+  "description": "Off-chain automation agent for Kyra savings circles",
   "type": "module",
   "main": "src/index.ts",
   "scripts": {
@@ -11,11 +11,12 @@
     "lint":  "eslint src --ext .ts"
   },
   "dependencies": {
-    "viem":   "2.21.19",
-    "dotenv": "16.4.5",
-    "pino":   "9.3.2",
+    "viem":        "2.21.19",
+    "dotenv":      "16.4.5",
+    "pino":        "9.3.2",
     "pino-pretty": "11.2.1",
-    "node-cron": "3.0.3"
+    "node-cron":   "3.0.3",
+    "resend":      "3.5.0"
   },
   "devDependencies": {
     "@types/node":      "20.14.2",

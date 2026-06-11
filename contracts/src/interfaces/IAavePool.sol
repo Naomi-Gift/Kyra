@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 
 /**
  * @title  IAavePool
- * @notice Minimal Aave v3 pool interface — only the two functions ChoreVault needs.
+ * @notice Minimal Aave v3 pool interface — only the two functions KyraVault needs.
  *         Full interface: https://github.com/aave/aave-v3-core
  */
 interface IAavePool {

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {IChoreVault} from "../interfaces/IChoreVault.sol";
+import {IKyraVault} from "../interfaces/IKyraVault.sol";
 
 /**
  * @title  AgentAuth
@@ -12,9 +12,9 @@ import {IChoreVault} from "../interfaces/IChoreVault.sol";
  *                                      (recovery if agent key is lost)
  *           - `transferOwnership`    — the owner hands off ownership
  *
- * @dev   `AgentRotated` is declared here rather than in IChoreVault because
+ * @dev   `AgentRotated` is declared here rather than in IKyraVault because
  *         Solidity does not allow emitting events via an interface type prefix
- *         (`emit IChoreVault.AgentRotated(...)` is invalid).  ChoreVault
+ *         (`emit IKyraVault.AgentRotated(...)` is invalid).  KyraVault
  *         inherits AgentAuth and therefore inherits this event.
  */
 abstract contract AgentAuth {
@@ -29,39 +29,39 @@ abstract contract AgentAuth {
     event AgentRotated(address indexed oldAgent, address indexed newAgent);
 
     constructor(address _agent, address _owner) {
-        if (_agent == address(0)) revert IChoreVault.ZeroAddress();
-        if (_owner == address(0)) revert IChoreVault.ZeroAddress();
+        if (_agent == address(0)) revert IKyraVault.ZeroAddress();
+        if (_owner == address(0)) revert IKyraVault.ZeroAddress();
         agent = _agent;
         owner = _owner;
     }
 
     modifier onlyAgent() {
-        if (msg.sender != agent) revert IChoreVault.OnlyAgent();
+        if (msg.sender != agent) revert IKyraVault.OnlyAgent();
         _;
     }
 
     modifier onlyOwner() {
-        if (msg.sender != owner) revert IChoreVault.OnlyOwner();
+        if (msg.sender != owner) revert IKyraVault.OnlyOwner();
         _;
     }
 
     /// @notice The agent rotates its own key.
     function rotateAgent(address newAgent) external onlyAgent {
-        if (newAgent == address(0)) revert IChoreVault.ZeroAddress();
+        if (newAgent == address(0)) revert IKyraVault.ZeroAddress();
         emit AgentRotated(agent, newAgent);
         agent = newAgent;
     }
 
     /// @notice The owner can rotate the agent key even if the agent key is lost.
     function emergencyRotateAgent(address newAgent) external onlyOwner {
-        if (newAgent == address(0)) revert IChoreVault.ZeroAddress();
+        if (newAgent == address(0)) revert IKyraVault.ZeroAddress();
         emit AgentRotated(agent, newAgent);
         agent = newAgent;
     }
 
     /// @notice Transfer ownership to a new address.
     function transferOwnership(address newOwner) external onlyOwner {
-        if (newOwner == address(0)) revert IChoreVault.ZeroAddress();
+        if (newOwner == address(0)) revert IKyraVault.ZeroAddress();
         owner = newOwner;
     }
 }

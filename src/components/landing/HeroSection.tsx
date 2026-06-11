@@ -152,7 +152,7 @@ export function HeroSection() {
             variants={fadeUp}
             className="mx-auto max-w-2xl pt-1 text-base leading-relaxed text-white/50 font-sans font-light sm:pt-2 sm:text-lg"
           >
-            ChoreAgent is a savings circle app where every member contributes,
+            Kyra is a savings circle app where every member contributes,
             everyone gets a turn with the full pot, and nothing is left to trust
             — because it all runs on-chain.
           </motion.p>

@@ -3,13 +3,13 @@ pragma solidity ^0.8.20;
 
 import "forge-std/Test.sol";
 import {GroupManager} from "../../src/libraries/GroupManager.sol";
-import {IChoreVault}  from "../../src/interfaces/IChoreVault.sol";
+import {IKyraVault}  from "../../src/interfaces/IKyraVault.sol";
 
 /**
  * @notice Harness that exposes GroupManager library functions over real storage.
  */
 contract GroupManagerHarness {
-    mapping(uint256 => IChoreVault.Group) public groups;
+    mapping(uint256 => IKyraVault.Group) public groups;
 
     function validateCreation(
         address[] calldata members,
@@ -180,21 +180,21 @@ contract GroupManagerTest is Test {
     function test_validateCreation_revertOnDuplicate() public {
         address[] memory dup = new address[](3);
         dup[0] = alice; dup[1] = alice; dup[2] = carol;
-        vm.expectRevert(IChoreVault.InvalidGroupSize.selector);
+        vm.expectRevert(IKyraVault.InvalidGroupSize.selector);
         h.validateCreation(dup, AMOUNT, INTERVAL);
     }
 
     function test_validateCreation_revertOnZeroAddress() public {
         address[] memory z = new address[](2);
         z[0] = alice; z[1] = address(0);
-        vm.expectRevert(IChoreVault.ZeroAddress.selector);
+        vm.expectRevert(IKyraVault.ZeroAddress.selector);
         h.validateCreation(z, AMOUNT, INTERVAL);
     }
 
     function test_validateCreation_revertOnTooFewMembers() public {
         address[] memory one = new address[](1);
         one[0] = alice;
-        vm.expectRevert(IChoreVault.InvalidGroupSize.selector);
+        vm.expectRevert(IKyraVault.InvalidGroupSize.selector);
         h.validateCreation(one, AMOUNT, INTERVAL);
     }
 }

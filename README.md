@@ -1,8 +1,8 @@
-# ChoreAgent
+# Kyra
 
 Trustless rotating savings circles on Celo — fully automated.
 
-ChoreAgent lets any group of people run a savings circle (ajo, susu, chama, tanda) on-chain with zero trust requirements. Every member contributes once per cycle; the full pot rotates automatically to a different member each round. Idle funds earn yield via Aave v3 while they wait. No coordinator, no spreadsheet, no chasing people for money.
+Kyra lets any group of people run a savings circle (ajo, susu, chama, tanda) on-chain with zero trust requirements. Every member contributes once per cycle; the full pot rotates automatically to a different member each round. Idle funds earn yield via Aave v3 while they wait. No coordinator, no spreadsheet, no chasing people for money.
 
 ---
 
@@ -31,13 +31,13 @@ If a member's `transferFrom` fails (insufficient allowance, insufficient balance
 ## Repository layout
 
 ```
-ChoreAgent/
+Kyra/
 ├── src/                          Next.js 15 frontend (landing + app dashboard)
 ├── agent/                        Off-chain Node.js automation agent
 │   └── src/
 │       ├── index.ts              Entry point — cron scheduler
 │       ├── agent.ts              Core cycle logic (collect + release per group)
-│       ├── abi.ts                ChoreVault ABI (matches deployed contract)
+│       ├── abi.ts                KyraVault ABI (matches deployed contract)
 │       ├── chain.ts              viem public + wallet clients for Celo
 │       ├── config.ts             Environment variable validation
 │       ├── notify.ts             Optional Telegram notifications
@@ -45,7 +45,7 @@ ChoreAgent/
 └── contracts/                    Foundry smart contract system
     ├── src/
     │   ├── interfaces/
-    │   │   ├── IChoreVault.sol   Canonical ABI — all structs, events, errors
+    │   │   ├── IKyraVault.sol   Canonical ABI — all structs, events, errors
     │   │   └── IAavePool.sol     Minimal Aave v3 interface (supply + withdraw)
     │   ├── libraries/
     │   │   ├── TrustRegistry.sol Member trust score logic
@@ -53,9 +53,9 @@ ChoreAgent/
     │   │   └── ExitVoting.sol    Democratic exit ballot lifecycle
     │   ├── base/
     │   │   └── AgentAuth.sol     Agent + owner access control
-    │   └── ChoreVault.sol        Main contract — thin orchestrator
+    │   └── KyraVault.sol        Main contract — thin orchestrator
     ├── test/
-    │   ├── ChoreVault.t.sol      Integration tests (19 tests)
+    │   ├── KyraVault.t.sol      Integration tests (19 tests)
     │   └── unit/
     │       ├── TrustRegistry.t.sol  (8 tests)
     │       ├── GroupManager.t.sol   (11 tests)
@@ -83,9 +83,9 @@ forge test -vv
 | `TrustRegistry.t.sol` | 8 | Score init, reward cap, penalty floor, risk thresholds |
 | `GroupManager.t.sol` | 11 | Create, rotation wrap, swap-and-pop removal, disband, validation |
 | `ExitVoting.t.sol` | 8 | Open ballot, majority resolution, requester blocked, double-vote guard |
-| `ChoreVault.t.sol` | 19 | Full lifecycle, partial failure, Aave yield, exit flow, 2-cycle e2e, agent rotation |
+| `KyraVault.t.sol` | 19 | Full lifecycle, partial failure, Aave yield, exit flow, 2-cycle e2e, agent rotation |
 
-### Contract: `ChoreVault.sol`
+### Contract: `KyraVault.sol`
 
 | Function | Caller | Description |
 |---|---|---|
@@ -184,7 +184,7 @@ Agent env vars:
 |---|---|
 | `CELO_RPC_URL` | Celo RPC endpoint |
 | `AGENT_PRIVATE_KEY` | Agent wallet private key (hex with 0x prefix) |
-| `CHORE_VAULT_ADDRESS` | Deployed ChoreVault contract address |
+| `KYRA_VAULT_ADDRESS` | Deployed KyraVault contract address |
 | `CUSD_ADDRESS` | cUSD token address |
 | `CRON_SCHEDULE` | Cron expression (default: `0 * * * *` — hourly) |
 | `TELEGRAM_BOT_TOKEN` | Optional — for run summaries |

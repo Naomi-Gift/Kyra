@@ -52,7 +52,7 @@ export function Footer() {
               >
                 <span className="text-obsidian-950 font-serif font-bold text-sm">C</span>
               </motion.div>
-              <span className="font-serif font-bold text-white text-lg">ChoreAgent</span>
+              <span className="font-serif font-bold text-white text-lg">Kyra</span>
             </Link>
             <p className="text-white/30 text-sm leading-relaxed max-w-xs">
               Savings circles for the people who never had time to run one manually.
@@ -100,7 +100,7 @@ export function Footer() {
           className="flex flex-col items-start justify-between gap-4 border-t border-white/5 pt-6 sm:flex-row sm:items-center"
         >
           <p className="text-white/20 text-xs font-sans">
-            © 2026 ChoreAgent. Built on Celo.
+            © 2026 Kyra. Built on Celo.
           </p>
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-white/20 text-xs font-sans">
             {["Privacy", "Terms", "Security"].map((l) => (

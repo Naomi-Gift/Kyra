@@ -2,14 +2,14 @@
 pragma solidity ^0.8.20;
 
 import "forge-std/Test.sol";
-import {ChoreVault}   from "../src/ChoreVault.sol";
-import {IChoreVault}  from "../src/interfaces/IChoreVault.sol";
+import {KyraVault}   from "../src/KyraVault.sol";
+import {IKyraVault}  from "../src/interfaces/IKyraVault.sol";
 import {MockERC20}    from "../mocks/MockERC20.sol";
 import {MockAavePool} from "../mocks/MockAavePool.sol";
 
-contract ChoreVaultTest is Test {
+contract KyraVaultTest is Test {
 
-    // Redeclare events for vm.expectEmit (avoids inheriting IChoreVault)
+    // Redeclare events for vm.expectEmit (avoids inheriting IKyraVault)
     event GroupCreated(uint256 indexed groupId, address indexed creator,
         address[] members, uint256 amount, uint256 interval);
     event Collected(uint256 indexed groupId, address indexed member, uint256 amount);
@@ -24,7 +24,7 @@ contract ChoreVaultTest is Test {
     event ExitRejected(uint256 indexed groupId, address indexed member);
     event GroupDisbanded(uint256 indexed groupId);
 
-    ChoreVault   vault;
+    KyraVault   vault;
     MockERC20    token;
     MockAavePool aave;
 
@@ -46,7 +46,7 @@ contract ChoreVaultTest is Test {
     function setUp() public {
         token    = new MockERC20("Celo Dollar", "cUSD");
         aave     = new MockAavePool(address(token));
-        vault    = new ChoreVault(agent, owner, address(token), address(aave));
+        vault    = new KyraVault(agent, owner, address(token), address(aave));
         members5 = [a, b, c, d, e];
 
         for (uint256 i; i < members5.length; i++) {
@@ -95,7 +95,7 @@ contract ChoreVaultTest is Test {
     function test_createGroup_revertInvalidMembers() public {
         address[] memory one = new address[](1);
         one[0] = a;
-        vm.expectRevert(IChoreVault.InvalidGroupSize.selector);
+        vm.expectRevert(IKyraVault.InvalidGroupSize.selector);
         vault.createGroup(one, AMOUNT, INTERVAL);
     }
 
@@ -147,7 +147,7 @@ contract ChoreVaultTest is Test {
     function test_collect_revertTooEarly() public {
         uint256 gId = _create();
         vm.prank(agent);
-        vm.expectRevert(IChoreVault.TooEarlyToCollect.selector);
+        vm.expectRevert(IKyraVault.TooEarlyToCollect.selector);
         vault.collect(gId);
     }
 
@@ -155,14 +155,33 @@ contract ChoreVaultTest is Test {
         uint256 gId = _create();
         vm.warp(block.timestamp + INTERVAL * 1 days + 1);
         vm.prank(a);
-        vm.expectRevert(IChoreVault.OnlyAgent.selector);
+        vm.expectRevert(IKyraVault.OnlyAgent.selector);
         vault.collect(gId);
     }
 
     function test_collect_revertGroupInactive() public {
         vm.prank(agent);
-        vm.expectRevert(IChoreVault.GroupNotFound.selector);
+        vm.expectRevert(IKyraVault.GroupNotFound.selector);
         vault.collect(99);
+    }
+
+    function test_collect_allFailures_doesNotAdvanceIfZero() public {
+        uint256 gId = _create();
+        // Revoke ALL member approvals
+        for (uint256 i; i < members5.length; i++) {
+            vm.prank(members5[i]);
+            token.approve(address(vault), 0);
+        }
+        vm.warp(block.timestamp + INTERVAL * 1 days + 1);
+        vm.prank(agent);
+        vault.collect(gId); // should not revert — just emits failures
+
+        // pendingRelease must be 0 (nothing collected)
+        (,,,,,, uint256 pending) = vault.getGroup(gId);
+        assertEq(pending, 0);
+        // nextCollection should still advance (cycle still moves forward)
+        (,,, uint256 nextColl,,,) = vault.getGroup(gId);
+        assertGt(nextColl, block.timestamp);
     }
 
     // ─── release ──────────────────────────────────────────────────────────────
@@ -191,7 +210,7 @@ contract ChoreVaultTest is Test {
     function test_release_revertNotAgent() public {
         uint256 gId = _create();
         vm.prank(a);
-        vm.expectRevert(IChoreVault.OnlyAgent.selector);
+        vm.expectRevert(IKyraVault.OnlyAgent.selector);
         vault.release(gId);
     }
 
@@ -199,7 +218,7 @@ contract ChoreVaultTest is Test {
         uint256 gId = _create();
         // No collect was called
         vm.prank(agent);
-        vm.expectRevert(IChoreVault.NothingToRelease.selector);
+        vm.expectRevert(IKyraVault.NothingToRelease.selector);
         vault.release(gId);
     }
 
@@ -221,7 +240,7 @@ contract ChoreVaultTest is Test {
 
     function test_emergencyRotateAgent_revertNotOwner() public {
         vm.prank(a);
-        vm.expectRevert(IChoreVault.OnlyOwner.selector);
+        vm.expectRevert(IKyraVault.OnlyOwner.selector);
         vault.emergencyRotateAgent(makeAddr("x"));
     }
 
@@ -264,7 +283,7 @@ contract ChoreVaultTest is Test {
     function test_exitFlow_revertNotMember() public {
         uint256 gId = _create();
         vm.prank(address(0xDEAD));
-        vm.expectRevert(IChoreVault.NotAMember.selector);
+        vm.expectRevert(IKyraVault.NotAMember.selector);
         vault.requestExit(gId);
     }
 
@@ -273,7 +292,7 @@ contract ChoreVaultTest is Test {
         vm.prank(a); vault.requestExit(gId);
         vm.prank(b); vault.voteExit(gId, a, true);
         vm.prank(b);
-        vm.expectRevert(IChoreVault.AlreadyVoted.selector);
+        vm.expectRevert(IKyraVault.AlreadyVoted.selector);
         vault.voteExit(gId, a, true);
     }
 

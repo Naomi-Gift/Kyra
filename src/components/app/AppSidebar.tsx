@@ -29,7 +29,7 @@ export function AppSidebar() {
           <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-gold-500 to-gold-600 font-serif text-sm font-bold text-obsidian-950 shadow-gold">
             C
           </span>
-          <span className="truncate font-serif text-base font-bold text-white">ChoreAgent</span>
+          <span className="truncate font-serif text-base font-bold text-white">Kyra</span>
         </Link>
         <span className="rounded-full border border-mint-500/20 bg-mint-500/10 px-2.5 py-1 text-[11px] font-medium text-mint-400">
           Active
@@ -57,7 +57,7 @@ export function AppSidebar() {
                 whileHover={{ x: 2 }}
                 className="font-serif font-bold text-white text-base block leading-none"
               >
-                ChoreAgent
+                Kyra
               </motion.span>
               <span className="text-white/25 text-[10px] font-sans">on Celo Mainnet</span>
             </div>

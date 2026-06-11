@@ -2,10 +2,10 @@
 pragma solidity ^0.8.20;
 
 import "forge-std/Script.sol";
-import {ChoreVault} from "../src/ChoreVault.sol";
+import {KyraVault} from "../src/KyraVault.sol";
 
 /**
- * @notice Deployment script for ChoreVault.
+ * @notice Deployment script for KyraVault.
  *
  * Usage — Alfajores testnet:
  *   forge script script/Deploy.s.sol \
@@ -30,7 +30,7 @@ import {ChoreVault} from "../src/ChoreVault.sol";
  *   Mainnet:   0x765DE816845861e75A25fCA122bb6898B8B1282a
  *   Alfajores: 0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1
  */
-contract DeployChoreVault is Script {
+contract DeployKyraVault is Script {
     address constant CUSD_MAINNET   = 0x765DE816845861e75A25fCA122bb6898B8B1282a;
     address constant CUSD_ALFAJORES = 0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1;
 
@@ -44,12 +44,12 @@ contract DeployChoreVault is Script {
 
         vm.startBroadcast(deployerKey);
 
-        ChoreVault vault = new ChoreVault(agentAddress, vm.addr(deployerKey), cusd, aavePool);
+        KyraVault vault = new KyraVault(agentAddress, vm.addr(deployerKey), cusd, aavePool);
 
         vm.stopBroadcast();
 
-        console2.log("=== ChoreVault Deployment ===");
-        console2.log("ChoreVault :", address(vault));
+        console2.log("=== KyraVault Deployment ===");
+        console2.log("KyraVault :", address(vault));
         console2.log("Agent      :", agentAddress);
         console2.log("cUSD       :", cusd);
         console2.log("Aave Pool  :", aavePool);

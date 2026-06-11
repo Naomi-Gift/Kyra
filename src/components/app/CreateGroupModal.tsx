@@ -23,7 +23,7 @@ export function CreateGroupModal({ open, onClose }: CreateGroupModalProps) {
     setLoading(true);
     await new Promise(r => setTimeout(r, 1500));
     setLoading(false);
-    toast.success("Group created!", { description: "ChoreAgent will start the first cycle automatically." });
+    toast.success("Group created!", { description: "Kyra will start the first cycle automatically." });
     onClose();
     setTimeout(() => setStep(1), 400);
   };
@@ -227,7 +227,7 @@ export function CreateGroupModal({ open, onClose }: CreateGroupModalProps) {
 
                   <div className="flex gap-2 p-3 rounded-xl bg-gold-500/5 border border-gold-500/12 text-gold-300/60 text-xs font-sans leading-relaxed">
                     <Info className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                    Each member approves their contribution once. ChoreAgent handles everything after that.
+                    Each member approves their contribution once. Kyra handles everything after that.
                   </div>
 
                   {/* Summary */}
