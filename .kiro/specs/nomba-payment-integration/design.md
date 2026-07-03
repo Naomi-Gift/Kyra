@@ -9,59 +9,83 @@ The Nomba integration adds a real payment layer to KYRA's savings circle flow. C
 ```
 Browser (Next.js client)
     │
-    ├── poll GET /api/payments/status every 4s
-    ├── POST /api/payments/collect
-    ├── POST /api/payments/payout
-    └── GET  /api/payments/reconciliation
+    ├── poll GET /api/payments/status every 4s       (usePaymentStatus hook ✓)
+    ├── poll GET /api/payments/reconciliation every 4s (ReconciliationPanel — pending)
+    ├── poll GET /api/activity every 5s              (TransactionFeed — pending)
+    ├── POST /api/payments/collect                   (route ✓)
+    ├── POST /api/payments/payout                    (route ✓)
+    └── GET  /api/payments/reconciliation            (route ✓)
             │
             ▼
     Next.js Route Handlers (server)
             │
             ├── src/lib/nomba/client.ts ──────────► Nomba REST API
-            │     OAuth token cache                  sandbox.nomba.com/v1
-            │     createVirtualAccount()
-            │     sendTransfer()
-            │     verifyWebhookSignature()
+            │     OAuth token cache  ✓               sandbox.nomba.com/v1
+            │     createVirtualAccount() ✓
+            │     sendTransfer() ✓
+            │     verifyWebhookSignature() ✓
             │
-            └── src/lib/backend/store.ts ─────────► In-memory store
+            └── src/lib/backend/store.ts ─────────► In-memory store ✓
                   virtualAccounts[]
                   payoutRecords[]
                   paymentMethods[]
                   activities[]
                   processedWebhookRefs (Set)
 
-Nomba ──────────► POST /api/webhooks/nomba
-                    verify nomba-signature
-                    check idempotency set
-                    route event
-                    update store
+Nomba ──────────► POST /api/webhooks/nomba ✓
+                    verify nomba-signature ✓
+                    check idempotency set ✓
+                    route event ✓
+                    update store ✓
 ```
 
-### Full Payment Cycle
+## Implementation Status
+
+| Layer | Item | Status |
+|---|---|---|
+| API | `POST /api/payments/collect` | ✅ Done |
+| API | `POST /api/payments/payout` (+ retry) | ✅ Done |
+| API | `POST /api/webhooks/nomba` | ✅ Done |
+| API | `GET /api/payments/status` | ✅ Done |
+| API | `GET /api/payments/reconciliation` | ✅ Done |
+| API | `GET /api/banks` | ✅ Done |
+| API | `GET/POST /api/account/payment-method` | ✅ Done |
+| Store | All helpers including idempotency set | ✅ Done |
+| Hook | `usePaymentStatus` | ✅ Done |
+| Component | `<CollectionCard />` | ✅ Done |
+| Component | `<PayoutCard />` | ✅ Done |
+| Component | `<ReconciliationPanel />` | ⬜ Pending (task 10) |
+| Component | `<PaymentMethodForm />` | ⬜ Pending (task 11) |
+| Page | Groups — wire `CollectionCard` per collecting group | ⬜ Pending (task 12.1) |
+| Page | Automation — add `ReconciliationPanel` | ⬜ Pending (task 12.2) |
+| Page | Account — add `PaymentMethodForm` | ⬜ Pending (task 12.3) |
+| Component | `TransactionFeed` — replace fake loop with real poll | ⬜ Pending (task 13) |
+
+## Full Payment Cycle
 
 **Phase 1 — Collection:**
 1. Automation detects cycle is due
 2. `POST /api/payments/collect` per member → Nomba creates virtual account
-3. Member sees account number in UI, transfers money
+3. Member sees account number in `<CollectionCard />` in Groups page, transfers money
 
 **Phase 2 — Confirmation:**
-4. Nomba fires `virtualaccount.credit` webhook
-5. Signature verified, idempotency checked, `va.paidAt` set, activity logged
+4. Nomba fires `virtualaccount.credit` webhook → signature verified, idempotency checked
+5. `va.paidAt` set, activity logged, `<CollectionCard />` flips to paid on next 4s poll
 
 **Phase 3 — Payout:**
-6. All VAs for round show `paidAt` → operator triggers payout
+6. `ReconciliationPanel` detects `allPaid === true`, shows **Send Payout** button
 7. `POST /api/payments/payout` → `PayoutRecord { status: "pending" }` saved → Nomba Transfer called
 
 **Phase 4 — Transfer confirmed:**
 8. Nomba fires `payout.success` → record updated to `success`, activity logged
+9. `<PayoutCard />` shows confirmed badge + session ID on next 4s poll
 
 ## Components and Interfaces
 
-### New API Routes
+### API Routes (all implemented)
 
 **`GET /api/payments/status`**
 ```ts
-// Response — polled every 4s by client
 {
   virtualAccounts: CollectionVirtualAccount[];
   payoutRecords: PayoutRecord[];
@@ -71,7 +95,6 @@ Nomba ──────────► POST /api/webhooks/nomba
 
 **`GET /api/payments/reconciliation`**
 ```ts
-// Response — full cycle breakdown for automation dashboard
 {
   cycles: Array<{
     groupId: string;
@@ -103,61 +126,51 @@ Nomba ──────────► POST /api/webhooks/nomba
 { paymentMethod: PaymentMethod | null }
 ```
 
-### New Components
+### Components (built ✅)
 
 **`<CollectionCard />`** — `src/components/app/CollectionCard.tsx`
 - Props: `va: CollectionVirtualAccount`, `memberName: string`, `amountNgn: number`
-- Paid state: member name, green badge, bank details
-- Pending state: account number, bank, amount in NGN, copy-to-clipboard button, reference
+- Paid state: green badge, bank + account number, confirmed timestamp
+- Pending state: account number, bank name, amount due, copy-to-clipboard, reference
+- Animated with `framer-motion` — spring transition on status change
 
 **`<PayoutCard />`** — `src/components/app/PayoutCard.tsx`
 - Props: `record: PayoutRecord`, `memberName: string`, `groupName: string`, `onRetry: () => void`
-- Success: recipient, amount, session ID, confirmed timestamp
-- Failed: recipient, amount, red badge, **Retry Payout** button with loading state
-- Pending: recipient, amount, yellow badge, spinner
+- Success: green badge, recipient, NGN amount, Nomba session ID
+- Failed: red badge, recipient, amount, **Retry Payout** button with loading state
+- Pending: gold badge, recipient, amount, rotating spinner
+
+### Components (pending ⬜)
 
 **`<ReconciliationPanel />`** — `src/components/app/ReconciliationPanel.tsx`
-- Fetches `GET /api/payments/reconciliation` on mount, re-polls every 4s
-- Renders per-cycle sections: collections table + payout card
-- "Send Payout" button when `allPaid === true` and no payout record exists
-- Empty state when no cycles have been processed
+- Polls `GET /api/payments/reconciliation` every 4s via `setTimeout`
+- Per-cycle sections: heading with group + round, grid of `<CollectionCard />`, then `<PayoutCard />` or **Send Payout** button
+- **Send Payout** appears when `cycle.allPaid && !cycle.payout` — calls `POST /api/payments/payout`
+- Empty state when `cycles` is empty
+- `onRetry` passed to each `<PayoutCard />` triggers a fresh payout POST
 
 **`<PaymentMethodForm />`** — `src/components/app/PaymentMethodForm.tsx`
-- Bank dropdown from `GET /api/banks`
-- Account number + account name fields
+- Fetches `GET /api/banks` to populate bank `<select>`
 - Pre-fills from `GET /api/account/payment-method` on mount
-- Submit → `POST /api/account/payment-method` → success toast
+- Submits to `POST /api/account/payment-method`
+- Success toast on `200`, inline error on failure
+- Submit button disabled during request
 
-### New Hook
+### Hook (built ✅)
 
 **`usePaymentStatus`** — `src/hooks/usePaymentStatus.ts`
 ```ts
-function usePaymentStatus(): {
+function usePaymentStatus(intervalMs?: number): {
   virtualAccounts: CollectionVirtualAccount[];
   payoutRecords: PayoutRecord[];
   lastUpdated: string | null;
   loading: boolean;
 }
 ```
-- Polls `GET /api/payments/status` every 4s via `setTimeout` (not `setInterval`)
-- Cleans up on unmount
-
-### Modified Components
-
-**`TransactionFeed`** — remove fake `setInterval`, replace with real `GET /api/activity` poll every 5s
+- Polls every 4s via `setTimeout` (not `setInterval`)
+- Cleans up via `mountedRef` + `clearTimeout` on unmount
 
 ## Data Models
-
-### Store additions
-
-```ts
-// New module-level state in store.ts
-const processedWebhookRefs = new Set<string>();
-
-// New helpers
-function listAllVirtualAccounts(): CollectionVirtualAccount[]
-function listAllPayoutRecords(): PayoutRecord[]
-```
 
 ### Idempotency reference formats
 
@@ -166,58 +179,78 @@ function listAllPayoutRecords(): PayoutRecord[]
 | Virtual account | `<groupId>:<round>:<memberId>` | `grp_family:4:mem_maria` |
 | Payout | `payout:<groupId>:<round>` | `payout:grp_family:4` |
 
-### Nigerian banks constant
+### Store helpers
+
+```ts
+// Idempotency
+isWebhookProcessed(ref: string): boolean
+markWebhookProcessed(ref: string): void
+
+// Virtual accounts
+saveVirtualAccount(va): CollectionVirtualAccount
+getVirtualAccountByReference(ref): CollectionVirtualAccount | undefined
+listVirtualAccountsForGroup(groupId): CollectionVirtualAccount[]
+listAllVirtualAccounts(): CollectionVirtualAccount[]
+markVirtualAccountPaid(ref, paidAt): CollectionVirtualAccount | undefined
+
+// Payout records
+savePayoutRecord(record): PayoutRecord
+getPayoutRecord(ref): PayoutRecord | undefined
+listAllPayoutRecords(): PayoutRecord[]
+resetPayoutForRetry(ref): PayoutRecord | undefined
+updatePayoutStatus(ref, status, sessionId?): PayoutRecord | undefined
+
+// Payment methods
+getPaymentMethod(memberId): PaymentMethod | undefined
+upsertPaymentMethod(method): PaymentMethod
+```
+
+### Nigerian banks
 
 `src/lib/banks.ts` — 25 banks including GTBank, Zenith, UBA, Access, First Bank, Kuda, Opay, Moniepoint, PalmPay.
-
-### Environment variables
-
-```
-NOMBA_ACCOUNT_ID        = f666ef9b-888e-4799-85ce-acb505b28023
-NOMBA_SUB_ACCOUNT_ID    = 8213193b-d59d-4944-b7e3-7ce3d3b18974
-NOMBA_CLIENT_ID         = 706df6c4-b8bb-4130-88c4-d21b052f8631
-NOMBA_CLIENT_SECRET     = k8UobYk3APgOoxUnNL7VpuxzwTsH4LsXtydfjcHs8RH0YISBB4OMqJsaafG+U8fWETu9YZ96bNXE+DelCDuMPw==
-NOMBA_BASE_URL          = https://sandbox.nomba.com/v1
-NOMBA_WEBHOOK_SECRET    = NombaHackathon2026
-```
 
 ## Correctness Properties
 
 ### Property 1: Idempotency
-Every Nomba operation uses a deterministic reference. Re-calling the same operation always returns the same result without side effects.
-**Validates: Requirements REQ-COL-2, REQ-PAY-3**
+Every Nomba operation uses a deterministic reference. Re-calling always returns the same result with no side effects.
+**Validates:** REQ-COL-2, REQ-PAY-3
 
 ### Property 2: Crash Safety
-`PayoutRecord { status: "pending" }` is written before the Nomba call. If the server crashes mid-transfer, the pending record is visible and retryable.
-**Validates: Requirements REQ-PAY-4**
+`PayoutRecord { status: "pending" }` is written before the Nomba call. A server crash mid-transfer leaves a visible, retryable record.
+**Validates:** REQ-PAY-4
 
 ### Property 3: Webhook Deduplication
-`processedWebhookRefs` set prevents duplicate activity entries from Nomba retries.
-**Validates: Requirements REQ-WHK-3**
+`processedWebhookRefs` Set prevents duplicate activity entries from Nomba retries.
+**Validates:** REQ-WHK-3
 
 ### Property 4: No Phantom Credits
-Contributions are only marked paid via webhook — never by the collect endpoint itself.
-**Validates: Requirements REQ-COL-4**
+Contributions are only marked paid via a verified webhook — never by the collect endpoint itself.
+**Validates:** REQ-COL-4
 
 ### Property 5: Retry Safety
-A payout retry reuses the same Nomba reference, making it safe to call Nomba multiple times without double-disbursing.
-**Validates: Requirements REQ-PAY-7**
+A payout retry reuses the same Nomba reference, making multiple calls safe — Nomba never double-disburses.
+**Validates:** REQ-PAY-7
 
 ## Error Handling
 
-- Nomba API errors → `502 { error, detail }`, logged server-side
-- Missing payment method → `422` before any Nomba call is made
-- Failed payout → record status `failed`, surfaced in reconciliation with retry button
-- Webhook signature failure → `401`, not logged as activity
-- Virtual account creation failure for one member → logged, other members still attempted
+| Scenario | Behaviour |
+|---|---|
+| Nomba API error | `502 { error, detail }`, logged server-side |
+| Missing payment method | `422` before any Nomba call |
+| Invalid webhook signature | `401`, no state change, not logged |
+| Failed payout | Record → `failed`, retry button shown in reconciliation |
+| VA creation fails for one member | Error logged, remaining members still attempted |
+| UI API call fails | Toast shown, no crash (REQ-ERR-2) |
 
 ## Testing Strategy
 
-Manual smoke tests via curl (see tasks 14.1–14.8):
-1. Create group → call collect for each member → verify VAs returned
-2. POST fake `virtualaccount.credit` webhook → verify activity log updates, `paidAt` set
-3. POST same webhook again → verify no duplicate activity entry
-4. Call payout → verify `PayoutRecord { status: "pending" }` exists before Nomba responds
-5. POST `payout.success` webhook → verify status → `success`, session ID recorded
-6. POST `payout.failed` webhook → verify retry button appears in UI
-7. Poll `/api/payments/status` → verify changes reflect within 5s
+Manual smoke tests via curl (task 14). Key scenarios:
+
+1. Collect → verify virtual accounts returned
+2. `virtualaccount.credit` webhook → verify `paidAt` set + activity logged
+3. Same webhook again → verify no duplicate (idempotency)
+4. Payout call → verify `pending` record exists before Nomba responds
+5. `payout.success` → verify `success` + session ID
+6. `payout.failed` → verify retry button in UI
+7. Live poll → verify UI reflects webhook within 5s
+8. Reconciliation endpoint → verify grouped structure

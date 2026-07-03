@@ -3,6 +3,7 @@ import Link from "next/link";
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
 import { staggerContainer, fadeUp } from "@/lib/motion";
+import { KyraLogoAnimated } from "@/components/ui/KyraLogo";
 
 const footerLinks = {
   Product: [
@@ -46,13 +47,7 @@ export function Footer() {
           {/* Brand col */}
           <motion.div variants={fadeUp} className="md:col-span-2 space-y-4">
             <Link href="/" className="flex items-center gap-2 group w-fit">
-              <motion.div
-                whileHover={{ scale: 1.1, rotate: -5 }}
-                className="w-8 h-8 rounded-lg bg-gradient-to-br from-gold-500 to-gold-600 flex items-center justify-center shadow-gold"
-              >
-                <span className="text-obsidian-950 font-serif font-bold text-sm">C</span>
-              </motion.div>
-              <span className="font-serif font-bold text-white text-lg">Kyra</span>
+              <KyraLogoAnimated size={32} />
             </Link>
             <p className="text-white/30 text-sm leading-relaxed max-w-xs">
               Savings circles for the people who never had time to run one manually.
