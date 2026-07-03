@@ -4,10 +4,6 @@ Automated savings circles for groups.
 
 Kyra lets families, friends, coworkers, and community groups run rotating savings circles without spreadsheets or a coordinator chasing everyone manually. Members join a group, save a payment method, contribute on schedule, and receive the full pot when their turn arrives.
 
-## What changed
-
-Kyra is now a Web2 product. The old decentralized architecture has been replaced with a conventional application backend.
-
 The app is built around:
 
 - A Next.js frontend and backend in one codebase
