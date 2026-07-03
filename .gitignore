@@ -19,3 +19,4 @@ agent/.env
 # Misc
 *.log
 .DS_Store
+.vercel

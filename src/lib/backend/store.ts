@@ -314,6 +314,11 @@ export function markVirtualAccountPaid(
   reference: string,
   paidAt: string
 ): CollectionVirtualAccount | undefined {
+  // Idempotency guard — if this webhook ref was already processed, skip.
+  if (isWebhookProcessed(reference)) {
+    return virtualAccounts.find((v) => v.reference === reference);
+  }
+
   const va = virtualAccounts.find((v) => v.reference === reference);
   if (va) {
     va.paidAt = paidAt;
@@ -328,6 +333,9 @@ export function markVirtualAccountPaid(
       amount: null, // will be updated when transfer amount is known
       occurredAt: paidAt,
     });
+
+    // Mark this webhook ref as processed so duplicate events are no-ops.
+    markWebhookProcessed(reference);
   }
   return va;
 }
@@ -379,6 +387,12 @@ export function updatePayoutStatus(
   status: PayoutRecord["status"],
   nombaSessionId?: string
 ): PayoutRecord | undefined {
+  // Idempotency guard — if this webhook ref was already processed, return the
+  // existing record without re-writing or appending duplicate activity entries.
+  if (isWebhookProcessed(reference)) {
+    return payoutRecords.find((p) => p.reference === reference);
+  }
+
   const record = payoutRecords.find((p) => p.reference === reference);
   if (record) {
     record.status = status;
@@ -396,6 +410,9 @@ export function updatePayoutStatus(
         occurredAt: new Date().toISOString(),
       });
     }
+
+    // Mark this webhook ref as processed so duplicate events are no-ops.
+    markWebhookProcessed(reference);
   }
   return record;
 }

@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/Button";
+import { KyraLogoAnimated } from "@/components/ui/KyraLogo";
 import { Menu, X } from "lucide-react";
 import { clsx } from "clsx";
 
@@ -39,19 +40,7 @@ export function Navbar() {
       <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 group">
-          <motion.div
-            whileHover={{ scale: 1.08, rotate: -4 }}
-            whileTap={{ scale: 0.95 }}
-            className="w-8 h-8 rounded-lg bg-gradient-to-br from-gold-500 to-gold-600 flex items-center justify-center shadow-gold"
-          >
-            <span className="text-obsidian-950 font-serif font-bold text-sm">C</span>
-          </motion.div>
-          <motion.span
-            whileHover={{ x: 2 }}
-            className="font-serif font-bold text-white text-base tracking-tight sm:text-lg"
-          >
-            Kyra
-          </motion.span>
+          <KyraLogoAnimated size={32} />
         </Link>
 
         {/* Desktop nav */}

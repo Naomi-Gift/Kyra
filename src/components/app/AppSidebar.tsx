@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { LayoutDashboard, Users, BarChart3, Settings, Bot, Home, CreditCard } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { clsx } from "clsx";
+import { KyraLogo, KyraLogoAnimated } from "@/components/ui/KyraLogo";
 
 const nav = [
   { href: "/app",              label: "Dashboard",  icon: LayoutDashboard },
@@ -26,10 +27,7 @@ export function AppSidebar() {
         className="fixed left-0 right-0 top-0 z-50 flex h-14 items-center justify-between border-b border-white/5 bg-obsidian-950/85 px-4 backdrop-blur-xl lg:hidden"
       >
         <Link href="/" className="flex min-w-0 items-center gap-2">
-          <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-gold-500 to-gold-600 font-serif text-sm font-bold text-obsidian-950 shadow-gold">
-            C
-          </span>
-          <span className="truncate font-serif text-base font-bold text-white">Kyra</span>
+          <KyraLogo size={32} />
         </Link>
         <span className="rounded-full border border-mint-500/20 bg-mint-500/10 px-2.5 py-1 text-[11px] font-medium text-mint-400">
           Active
@@ -45,22 +43,8 @@ export function AppSidebar() {
         {/* Brand */}
         <div className="p-6 border-b border-white/5">
           <Link href="/" className="flex items-center gap-2 group">
-            <motion.div
-              whileHover={{ scale: 1.1, rotate: -5 }}
-              whileTap={{ scale: 0.95 }}
-              className="w-8 h-8 rounded-lg bg-gradient-to-br from-gold-500 to-gold-600 flex items-center justify-center shadow-gold"
-            >
-              <span className="text-obsidian-950 font-serif font-bold text-sm">C</span>
-            </motion.div>
-            <div>
-              <motion.span
-                whileHover={{ x: 2 }}
-                className="font-serif font-bold text-white text-base block leading-none"
-              >
-                Kyra
-              </motion.span>
-              <span className="text-white/25 text-[10px] font-sans">payments backend</span>
-            </div>
+            <KyraLogoAnimated size={32} />
+            <span className="text-white/25 text-[10px] font-sans ml-1">payments backend</span>
           </Link>
         </div>
 
