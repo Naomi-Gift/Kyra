@@ -18,7 +18,7 @@ Kyra replaces the manual coordinator with an automated backend. Members get a vi
 
 ## Live Demo
 
-🔗 **[kyra-naomi.vercel.app](https://kyra-naomi.vercel.app)** *(deploy URL — update after Vercel deploy)*
+🔗 **[Kyra website](https://kyra-sigma.vercel.app/)** *(deploy URL — update after Vercel deploy)*
 
 ---
 
