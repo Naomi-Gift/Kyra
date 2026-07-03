@@ -3,7 +3,7 @@ const nextConfig = {
   reactStrictMode: true,
   outputFileTracingRoot: require("path").join(__dirname),
   eslint: {
-    // Agent and contracts are not part of the Next.js app
+    // Linting is handled separately from production builds.
     ignoreDuringBuilds: true,
   },
   typescript: {

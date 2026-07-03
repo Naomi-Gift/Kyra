@@ -1,215 +1,123 @@
 # Kyra
 
-Trustless rotating savings circles on Celo — fully automated.
+Automated savings circles for groups.
 
-Kyra lets any group of people run a savings circle (ajo, susu, chama, tanda) on-chain with zero trust requirements. Every member contributes once per cycle; the full pot rotates automatically to a different member each round. Idle funds earn yield via Aave v3 while they wait. No coordinator, no spreadsheet, no chasing people for money.
+Kyra lets families, friends, coworkers, and community groups run rotating savings circles without spreadsheets or a coordinator chasing everyone manually. Members join a group, save a payment method, contribute on schedule, and receive the full pot when their turn arrives.
 
----
+## What changed
 
-## How it works
+Kyra is now a Web2 product. The old decentralized architecture has been replaced with a conventional application backend.
 
-```
-Member 1 ─┐
-Member 2 ─┤  approve(vault, amount)    ┌─ collect() ──► Aave deposit
-Member 3 ─┤  ──────────────────────►  │
-Member 4 ─┤                           └─ release() ──► recipient + yield
-Member 5 ─┘
+The app is built around:
 
-Repeat every cycle. Every member receives the pot exactly once per rotation.
-```
+- A Next.js frontend and backend in one codebase
+- Route-handler APIs under `src/app/api`
+- Typed domain models in `src/lib/backend`
+- Backend-managed group scheduling, collections, payouts, activity, and settings
+- Regular account and payment-method language throughout the product
 
-1. A group is created on-chain with an ordered member list, a contribution amount, and a cycle interval.
-2. Each member approves the vault to spend their `amount` in cUSD — once, ever.
-3. The off-chain agent calls `collect()` when the interval elapses. It pulls cUSD from every member, deposits the total to Aave, and records the amount per-group.
-4. The agent calls `release()`. The vault withdraws the per-group Aave balance (principal + yield) and sends it directly to the current rotation recipient.
-5. Rotation advances. The cycle repeats until everyone has been paid, then can restart.
+## Product flow
 
-If a member's `transferFrom` fails (insufficient allowance, insufficient balance), their contribution is skipped and their trust score is penalised. The cycle continues for all other members — one bad member never blocks the group.
+1. A user creates a savings group with a contribution amount and cycle duration.
+2. Members are invited by name or email.
+3. Kyra stores each member and payment method through the backend domain model.
+4. The automation worker checks due groups, records collections, queues payouts, and logs activity.
+5. Members can view groups, savings growth, recent activity, account balance, payment methods, and notification settings.
 
----
+## Project structure
 
-## Repository layout
-
-```
-Kyra/
-├── src/                          Next.js 15 frontend (landing + app dashboard)
-├── agent/                        Off-chain Node.js automation agent
-│   └── src/
-│       ├── index.ts              Entry point — cron scheduler
-│       ├── agent.ts              Core cycle logic (collect + release per group)
-│       ├── abi.ts                KyraVault ABI (matches deployed contract)
-│       ├── chain.ts              viem public + wallet clients for Celo
-│       ├── config.ts             Environment variable validation
-│       ├── notify.ts             Optional Telegram notifications
-│       └── logger.ts             Structured pino logger
-└── contracts/                    Foundry smart contract system
-    ├── src/
-    │   ├── interfaces/
-    │   │   ├── IKyraVault.sol   Canonical ABI — all structs, events, errors
-    │   │   └── IAavePool.sol     Minimal Aave v3 interface (supply + withdraw)
-    │   ├── libraries/
-    │   │   ├── TrustRegistry.sol Member trust score logic
-    │   │   ├── GroupManager.sol  Group state CRUD
-    │   │   └── ExitVoting.sol    Democratic exit ballot lifecycle
-    │   ├── base/
-    │   │   └── AgentAuth.sol     Agent + owner access control
-    │   └── KyraVault.sol        Main contract — thin orchestrator
-    ├── test/
-    │   ├── KyraVault.t.sol      Integration tests (19 tests)
-    │   └── unit/
-    │       ├── TrustRegistry.t.sol  (8 tests)
-    │       ├── GroupManager.t.sol   (11 tests)
-    │       └── ExitVoting.t.sol     (8 tests)
-    ├── mocks/
-    │   ├── MockERC20.sol         Minimal cUSD mock with public mint
-    │   └── MockAavePool.sol      Simulates yield: principal + 1e18 per withdraw
-    └── script/
-        └── Deploy.s.sol          Foundry broadcast deploy script
+```text
+src/
+  app/
+    api/                    Backend route handlers
+      account/
+      activity/
+      automation/
+      dashboard/
+      groups/
+      settings/
+    app/                    Authenticated app screens
+    page.tsx                Landing page
+  components/
+    app/                    Dashboard components
+    landing/                Marketing/product sections
+    ui/                     Shared UI primitives
+  lib/
+    backend/                Web2 domain types and seeded store
 ```
 
----
-
-## Smart contract
-
-### Test suite — 46/46 passing
+## Local development
 
 ```bash
-cd contracts
-forge test -vv
-```
-
-| Suite | Tests | What it covers |
-|---|---|---|
-| `TrustRegistry.t.sol` | 8 | Score init, reward cap, penalty floor, risk thresholds |
-| `GroupManager.t.sol` | 11 | Create, rotation wrap, swap-and-pop removal, disband, validation |
-| `ExitVoting.t.sol` | 8 | Open ballot, majority resolution, requester blocked, double-vote guard |
-| `KyraVault.t.sol` | 19 | Full lifecycle, partial failure, Aave yield, exit flow, 2-cycle e2e, agent rotation |
-
-### Contract: `KyraVault.sol`
-
-| Function | Caller | Description |
-|---|---|---|
-| `createGroup(members, amount, intervalDays)` | Anyone | Creates a new savings group on-chain |
-| `collect(groupId)` | Agent only | Pulls cUSD from all members, deposits to Aave |
-| `release(groupId)` | Agent only | Withdraws from Aave, sends pot + yield to recipient |
-| `requestExit(groupId)` | Member | Opens a democratic exit ballot |
-| `voteExit(groupId, member, approve)` | Member | Votes on an open exit request |
-| `rotateAgent(newAgent)` | Agent | Agent rotates its own key |
-| `emergencyRotateAgent(newAgent)` | Owner | Owner recovers if agent key is lost |
-| `transferOwnership(newOwner)` | Owner | Transfers contract ownership |
-| `getTrustScore(member)` | Anyone | Returns member's trust score (default 100) |
-| `getGroup(groupId)` | Anyone | Returns all group fields |
-| `isMember(groupId, account)` | Anyone | Membership check |
-| `groupCount()` | Anyone | Total groups ever created |
-
-### Trust scores
-
-Every member starts at 100. On-time contributions earn +5 (capped at 200). Failed contributions cost −20 (floored at 0). Scores are stored with a +1 offset internally so a legitimately penalised-to-zero score is distinguished from an uninitialised address.
-
-### Safety properties
-
-- **Per-group Aave tracking** — `pendingRelease` is stored per group. Multiple concurrent groups never share an Aave balance.
-- **Collect-before-release gate** — `release()` reverts with `NothingToRelease` if `pendingRelease == 0`.
-- **Non-reverting collection** — each member's `transferFrom` is a low-level call. One failed member never rolls back the whole transaction.
-- **CEI pattern** — `pendingRelease` is zeroed before the Aave withdrawal in `release()`.
-- **Agent key recovery** — owner can call `emergencyRotateAgent()` if the agent key is compromised or lost.
-- **All ERC-20 return values checked** — `transfer()` result checked via custom error `TransferFailed`.
-
-### Deploy
-
-```bash
-cp contracts/.env.example contracts/.env  # fill in values
-
-# Alfajores testnet
-forge script contracts/script/Deploy.s.sol \
-  --rpc-url alfajores \
-  --broadcast --verify -vvvv
-
-# Celo Mainnet
-forge script contracts/script/Deploy.s.sol \
-  --rpc-url celo \
-  --broadcast --verify -vvvv
-```
-
-Required env vars:
-
-| Variable | Description |
-|---|---|
-| `PRIVATE_KEY` | Deployer wallet private key |
-| `AGENT_ADDRESS` | Off-chain agent wallet address |
-| `AAVE_POOL_ADDRESS` | Aave v3 Pool proxy on the target chain |
-| `CELOSCAN_API_KEY` | For contract verification |
-
-cUSD addresses:
-
-| Network | Address |
-|---|---|
-| Celo Mainnet | `0x765DE816845861e75A25fCA122bb6898B8B1282a` |
-| Alfajores Testnet | `0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1` |
-
----
-
-## Agent
-
-### Setup
-
-```bash
-cd agent
-cp .env.example .env    # fill in all values
 npm install
+npm run dev
 ```
 
-### Run
+Open `http://localhost:3000`.
 
-```bash
-npm run dev             # watch mode with tsx
-npm start               # production
-```
+## API routes
+
+| Route | Method | Purpose |
+| --- | --- | --- |
+| `/api/groups` | `GET` | List savings groups |
+| `/api/groups` | `POST` | Create a savings group |
+| `/api/activity` | `GET` | List recent activity |
+| `/api/dashboard` | `GET` | Return dashboard metrics |
+| `/api/account` | `GET` | Return account summary |
+| `/api/automation` | `GET` | Return worker status |
+| `/api/automation` | `POST` | Queue a manual automation run |
+| `/api/settings` | `GET` | Return notification settings |
+| `/api/settings` | `PATCH` | Update notification settings |
+| `/api/payments/collect` | `POST` | Create Nomba virtual account for a contribution |
+| `/api/payments/payout` | `POST` | Send pot payout via Nomba transfer |
+| `/api/webhooks/nomba` | `POST` | Receive Nomba payment event webhooks |
+
+## Nomba integration
+
+KYRA uses [Nomba](https://developer.nomba.com) as its payment provider for collections and payouts.
 
 ### How it works
 
-On startup and on every `CRON_SCHEDULE` tick:
+1. **Collection** — When a member owes a contribution, `POST /api/payments/collect` creates a Nomba virtual account. The member does a bank transfer to that account number. Nomba fires a `virtualaccount.credit` webhook to `/api/webhooks/nomba`, which marks the contribution as received.
+2. **Payout** — When the full pot is ready, `POST /api/payments/payout` calls the Nomba Transfer API to send funds directly to the winning member's bank account. Nomba confirms delivery via a `payout.success` webhook.
+3. **Webhooks** — All Nomba events arrive at `POST /api/webhooks/nomba`. The handler verifies the HMAC-SHA256 signature before processing.
 
-1. Reads `groupCount()` from the contract.
-2. For each group, reads `getGroup()`.
-3. Skips inactive groups.
-4. If `block.timestamp >= nextCollection`, simulates then calls `collect(groupId)`.
-5. Re-reads the group. If `pendingRelease > 0`, simulates then calls `release(groupId)`.
-6. Waits for 1 confirmation on each transaction before moving to the next group.
-7. Sends a plain-English summary to Telegram (optional).
+### Payment API routes
 
-Agent env vars:
+| Route | Method | Purpose |
+| --- | --- | --- |
+| `/api/payments/collect` | `POST` | Create a Nomba virtual account for a member's contribution |
+| `/api/payments/payout` | `POST` | Trigger a bank transfer payout to the pot winner |
+| `/api/webhooks/nomba` | `POST` | Receive and process Nomba payment event webhooks |
 
-| Variable | Description |
-|---|---|
-| `CELO_RPC_URL` | Celo RPC endpoint |
-| `AGENT_PRIVATE_KEY` | Agent wallet private key (hex with 0x prefix) |
-| `KYRA_VAULT_ADDRESS` | Deployed KyraVault contract address |
-| `CUSD_ADDRESS` | cUSD token address |
-| `CRON_SCHEDULE` | Cron expression (default: `0 * * * *` — hourly) |
-| `TELEGRAM_BOT_TOKEN` | Optional — for run summaries |
-| `TELEGRAM_CHAT_ID` | Optional — for run summaries |
+### Setup
 
----
-
-## Frontend
+1. Copy `.env.local.example` to `.env.local` and fill in your Nomba credentials.
+2. In the Nomba dashboard, set the webhook URL to `https://your-domain.com/api/webhooks/nomba`.
+3. Copy the webhook secret from the dashboard into `NOMBA_WEBHOOK_SECRET`.
 
 ```bash
-npm run dev       # http://localhost:3000
-npm run build
-npm start
+cp .env.local.example .env.local
 ```
 
----
+### Nomba client
 
-## Tech stack
+The Nomba API wrapper lives in `src/lib/nomba/`:
 
-| Layer | Technology |
-|---|---|
-| Smart contracts | Solidity 0.8.20, Foundry |
-| Blockchain | Celo Mainnet (chainId 42220) |
-| Yield | Aave v3 |
-| Stable coin | cUSD |
-| Agent | Node.js, viem, node-cron |
-| Frontend | Next.js 15, Tailwind CSS, Framer Motion |
-| Notifications | Telegram Bot API |
+```text
+src/lib/nomba/
+  client.ts   — OAuth token lifecycle, createVirtualAccount(), sendTransfer(), verifyWebhookSignature()
+  types.ts    — Nomba API request/response types
+```
+
+Token management is automatic — the client issues, refreshes (5 min before expiry), and caches the OAuth token. In production with multiple server instances, move the token cache to Redis.
+
+## Next backend steps
+
+The current backend store is intentionally in-memory so the product can be developed quickly. For production, replace `src/lib/backend/store.ts` with:
+
+- PostgreSQL or another durable database
+- An auth provider for sessions and member invites
+- Move Nomba token cache to Redis for multi-instance deployments
+- A scheduled worker for recurring cycles (replace the interval-based automation)
+- Audit logging for every collection, payout, and settings change

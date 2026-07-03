@@ -19,9 +19,9 @@ const steps = [
   {
     number: "02",
     icon: Bot,
-    title: "Approve once",
+    title: "Add payment details",
     description:
-      "Each member approves their weekly amount in their wallet. That's the only action they ever need to take.",
+      "Each member securely saves a card or bank account. That's the only setup they ever need to do.",
     bg: "from-violet-500/10 to-transparent",
     border: "border-violet-500/15",
     iconColor: "text-violet-400",
@@ -43,7 +43,7 @@ const steps = [
     icon: Banknote,
     title: "Everyone gets their turn",
     description:
-      "The full pot is sent directly to a different member each cycle. Transparent, fair, on-chain.",
+      "The full pot is sent directly to a different member each cycle. Transparent, fair, and easy to track.",
     bg: "from-coral-500/10 to-transparent",
     border: "border-coral-500/15",
     iconColor: "text-coral-400",

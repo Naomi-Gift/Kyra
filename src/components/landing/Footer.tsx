@@ -100,7 +100,7 @@ export function Footer() {
           className="flex flex-col items-start justify-between gap-4 border-t border-white/5 pt-6 sm:flex-row sm:items-center"
         >
           <p className="text-white/20 text-xs font-sans">
-            © 2026 Kyra. Built on Celo.
+            © 2026 Kyra. Built for automated savings circles.
           </p>
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-white/20 text-xs font-sans">
             {["Privacy", "Terms", "Security"].map((l) => (

@@ -11,17 +11,17 @@ const pillars = [
   },
   {
     layer: "Security",
-    items: ["Non-Custodial", "Contract-Enforced", "Audited"],
+    items: ["Tokenized Methods", "Server Auth", "Audit Logs"],
     color: "violet",
   },
   {
     layer: "Payments",
-    items: ["cUSD Stable", "Zero Gas Fees", "Instant Settlement"],
+    items: ["Cards", "Bank Transfers", "Payout Rails"],
     color: "mint",
   },
   {
     layer: "Access",
-    items: ["Mobile-First", "Any Wallet", "No Sign-Up"],
+    items: ["Mobile-First", "Email Login", "Member Invites"],
     color: "coral",
   },
 ];
@@ -46,8 +46,8 @@ const glowMap: Record<string, string> = {
 };
 
 const trustedBy = [
-  { name: "Celo Network",    role: "Blockchain Infrastructure" },
-  { name: "MiniPay",         role: "Mobile Wallet Partner"     },
+  { name: "Kyra API",        role: "Backend Infrastructure"    },
+  { name: "Payment Rails",   role: "Collections and Payouts"   },
   { name: "3,200+ Members",  role: "Across 47 active groups"   },
 ];
 

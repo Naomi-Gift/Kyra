@@ -3,15 +3,15 @@ import "./globals.css";
 import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
-  title: "Kyra — AI Savings on Celo",
+  title: "Kyra — Automated Savings Circles",
   description:
-    "AI-powered savings agent on Celo. Join a group, approve a cUSD amount, and Kyra automatically collects from every member and rotates the pot.",
+    "Automated savings circles with scheduled collections, member reminders, and backend-managed payouts.",
   icons: {
     icon: "/favicon.ico",
   },
   openGraph: {
     title: "Kyra",
-    description: "AI-powered savings agent on Celo",
+    description: "Automated savings circles with backend-managed payments",
     type: "website",
   },
 };

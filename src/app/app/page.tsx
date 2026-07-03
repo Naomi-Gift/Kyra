@@ -28,7 +28,7 @@ export default function AppDashboard() {
           <div>
             <h1 className="font-serif text-2xl font-bold text-white sm:text-3xl">Dashboard</h1>
             <p className="text-white/35 text-sm font-sans mt-0.5">
-              Good morning · Agent ran 11h ago
+              Good morning · Automation ran 11h ago
             </p>
           </div>
           <div className="flex w-full items-center gap-3 sm:w-auto">
@@ -67,7 +67,7 @@ export default function AppDashboard() {
           </div>
         </div>
 
-        {/* Agent status strip */}
+        {/* Automation status strip */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -85,7 +85,7 @@ export default function AppDashboard() {
             </motion.div>
             <div>
               <p className="text-white/60 text-sm font-sans">
-                Agent ran successfully · collected $550 across 3 groups
+                Automation ran successfully · collected $550 across 3 groups
               </p>
               <p className="text-white/25 text-xs font-sans">
                 All automated · 0 issues · 11h ago

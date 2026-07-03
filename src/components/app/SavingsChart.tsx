@@ -55,7 +55,7 @@ export function SavingsChart() {
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="min-w-0">
           <h3 className="font-serif text-lg font-semibold text-white">Savings Growth</h3>
-          <p className="text-white/30 text-xs font-sans">Total cUSD saved across all groups</p>
+          <p className="text-white/30 text-xs font-sans">Total cash saved across all groups</p>
         </div>
         <div className="flex items-center gap-1 glass rounded-lg p-1">
           {ranges.map((r) => (

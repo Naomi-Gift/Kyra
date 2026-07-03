@@ -21,9 +21,22 @@ export function CreateGroupModal({ open, onClose }: CreateGroupModalProps) {
 
   const handleSubmit = async () => {
     setLoading(true);
-    await new Promise(r => setTimeout(r, 1500));
+    const members = form.members
+      .filter(Boolean)
+      .map((member) => ({ name: member, email: `${member.toLowerCase().replace(/\s+/g, ".")}@example.com` }));
+
+    await fetch("/api/groups", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: form.name,
+        amount: form.amount,
+        cycleDays: form.cycleDays,
+        members,
+      }),
+    });
     setLoading(false);
-    toast.success("Group created!", { description: "Kyra will start the first cycle automatically." });
+    toast.success("Group created!", { description: "Kyra will schedule the first cycle automatically." });
     onClose();
     setTimeout(() => setStep(1), 400);
   };
@@ -188,7 +201,7 @@ export function CreateGroupModal({ open, onClose }: CreateGroupModalProps) {
                   className="max-h-[72vh] space-y-5 overflow-y-auto p-4 sm:p-6"
                 >
                   <div className="space-y-2">
-                    <label className="text-white/45 text-xs font-sans tracking-widest uppercase">Member wallet addresses</label>
+                    <label className="text-white/45 text-xs font-sans tracking-widest uppercase">Member names or emails</label>
                     <div className="space-y-2 max-h-52 overflow-y-auto">
                       <AnimatePresence>
                         {form.members.map((m, i) => (
@@ -202,10 +215,10 @@ export function CreateGroupModal({ open, onClose }: CreateGroupModalProps) {
                           >
                             <input
                               type="text"
-                              placeholder="0x…"
+                              placeholder="Maria S. or maria@example.com"
                               value={m}
                               onChange={(e) => updateMember(i, e.target.value)}
-                              className="flex-1 glass rounded-xl px-4 py-2.5 text-white placeholder:text-white/20 text-sm font-mono focus:outline-none border border-white/6 focus:ring-1 focus:ring-gold-500/30 transition-all"
+                              className="flex-1 glass rounded-xl px-4 py-2.5 text-white placeholder:text-white/20 text-sm font-sans focus:outline-none border border-white/6 focus:ring-1 focus:ring-gold-500/30 transition-all"
                             />
                             {form.members.length > 1 && (
                               <motion.button
@@ -227,7 +240,7 @@ export function CreateGroupModal({ open, onClose }: CreateGroupModalProps) {
 
                   <div className="flex gap-2 p-3 rounded-xl bg-gold-500/5 border border-gold-500/12 text-gold-300/60 text-xs font-sans leading-relaxed">
                     <Info className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                    Each member approves their contribution once. Kyra handles everything after that.
+                    Kyra sends invites, collects saved payment methods, and runs each cycle from the backend.
                   </div>
 
                   {/* Summary */}

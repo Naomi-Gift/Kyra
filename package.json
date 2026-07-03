@@ -22,9 +22,7 @@
     "react-dom": "18.3.1",
     "recharts": "2.15.3",
     "sonner": "1.5.0",
-    "tailwind-merge": "2.3.0",
-    "thirdweb": "^5.98.0",
-    "wagmi": "^2.14.11"
+    "tailwind-merge": "2.3.0"
   },
   "devDependencies": {
     "@types/node": "20.14.2",

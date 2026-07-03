@@ -2,7 +2,7 @@ import { Navbar } from "@/components/landing/Navbar";
 import { HeroSection } from "@/components/landing/HeroSection";
 import { HowItWorks } from "@/components/landing/HowItWorks";
 import { FeaturesGrid } from "@/components/landing/FeaturesGrid";
-import { AgentActivity } from "@/components/landing/AgentActivity";
+import { AutomationActivity } from "@/components/landing/AutomationActivity";
 import { TechStack } from "@/components/landing/TechStack";
 import { Footer } from "@/components/landing/Footer";
 import { GlowOrbs } from "@/components/ui/GlowOrbs";
@@ -19,8 +19,8 @@ export default function Home() {
       <div id="features">
         <FeaturesGrid />
       </div>
-      <div id="agent">
-        <AgentActivity />
+      <div id="automation">
+        <AutomationActivity />
       </div>
       <TechStack />
       <Footer />

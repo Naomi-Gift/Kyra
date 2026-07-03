@@ -7,7 +7,7 @@ import {
   RefreshCw,
   DollarSign,
   Lock,
-  Wallet,
+  Users,
 } from "lucide-react";
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
@@ -25,8 +25,8 @@ const features = [
   },
   {
     icon: Smartphone,
-    title: "Works in your wallet",
-    desc: "Available directly inside MiniPay. No new app to download, no account to create.",
+    title: "Works on any device",
+    desc: "Members join from a simple web app. No special financial tooling or technical setup required.",
     badge: { label: "Mobile", variant: "mint" as const },
     size: "normal",
     accent: "rgba(16,185,129,0.04)",
@@ -34,18 +34,18 @@ const features = [
   },
   {
     icon: Shield,
-    title: "No one holds your money",
-    desc: "Funds move directly between members. Kyra never holds a balance — it only has permission to collect what you approved.",
-    badge: { label: "Non-custodial", variant: "violet" as const },
+    title: "Payment-safe by design",
+    desc: "Kyra stores tokenized payment methods, applies per-cycle limits, and keeps a clear audit trail for every group.",
+    badge: { label: "Secure", variant: "violet" as const },
     size: "normal",
     accent: "rgba(139,92,246,0.04)",
     hoverBorder: "rgba(139,92,246,0.2)",
   },
   {
     icon: Lock,
-    title: "Zero gas fees",
-    desc: "Members pay nothing in transaction fees. Kyra handles gas so your savings stay whole.",
-    badge: { label: "Gasless", variant: "violet" as const },
+    title: "No hidden fees",
+    desc: "Members save in regular currency and avoid confusing setup, network charges, and technical friction.",
+    badge: { label: "Simple", variant: "violet" as const },
     size: "normal",
     accent: "rgba(139,92,246,0.04)",
     hoverBorder: "rgba(139,92,246,0.2)",
@@ -53,7 +53,7 @@ const features = [
   {
     icon: BarChart3,
     title: "Full visibility",
-    desc: "Every collection, every payout, every cycle — logged permanently on-chain. You can verify everything, anytime.",
+    desc: "Every collection, payout, and cycle is logged in Kyra so members can review the group history anytime.",
     badge: { label: "Transparent", variant: "gold" as const },
     size: "large",
     accent: "rgba(251,191,36,0.05)",
@@ -70,15 +70,15 @@ const features = [
   },
   {
     icon: DollarSign,
-    title: "Stable by default",
-    desc: "All savings are in cUSD — a stable dollar. Your pot doesn't fluctuate with crypto prices.",
+    title: "Cash by default",
+    desc: "All savings are tracked in regular money, so the pot stays understandable for every member.",
     badge: { label: "Stable", variant: "gold" as const },
     size: "normal",
     accent: "rgba(251,191,36,0.04)",
     hoverBorder: "rgba(251,191,36,0.2)",
   },
   {
-    icon: Wallet,
+    icon: Users,
     title: "Works with any group",
     desc: "Family, friends, colleagues. Set the amount, the schedule, and the members — Kyra does the rest.",
     badge: { label: "Flexible", variant: "default" as const },

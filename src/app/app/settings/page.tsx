@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { Bell, Shield, Smartphone, Save } from "lucide-react";
+import { Bell, Shield, CreditCard, Save } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { toast } from "sonner";
@@ -10,8 +10,8 @@ export default function SettingsPage() {
     cycleStart: true,
     collectionDone: true,
     payoutReceived: true,
-    agentError: true,
-    telegram: false,
+    automationError: true,
+    emailDigest: false,
   });
 
   const handleSave = () => {
@@ -37,10 +37,10 @@ export default function SettingsPage() {
         <div className="space-y-3">
           {[
             { key: "cycleStart", label: "Cycle started", desc: "When a new savings cycle begins" },
-            { key: "collectionDone", label: "Collection complete", desc: "After agent collects from all members" },
-            { key: "payoutReceived", label: "Payout received", desc: "When the pot lands in your wallet" },
-            { key: "agentError", label: "Agent errors", desc: "If a collection fails" },
-            { key: "telegram", label: "Telegram bot", desc: "Get summaries via Telegram" },
+            { key: "collectionDone", label: "Collection complete", desc: "After Kyra collects from all members" },
+            { key: "payoutReceived", label: "Payout received", desc: "When the pot lands in your account" },
+            { key: "automationError", label: "Automation errors", desc: "If a collection fails" },
+            { key: "emailDigest", label: "Email digest", desc: "Get weekly summaries by email" },
           ].map((item) => (
             <div key={item.key} className="flex items-center justify-between gap-4 py-3 border-b border-white/5 last:border-0">
               <div>
@@ -81,9 +81,9 @@ export default function SettingsPage() {
         </div>
         <div className="space-y-2">
           {[
-            { label: "Agent address", value: "0xDeAdBeEf…1337", badge: "Verified" },
-            { label: "Contract", value: "0xAbCd…EfGh (Celo)", badge: "Audited" },
-            { label: "Auth method", value: "ERC-2771 forwarder", badge: null },
+            { label: "Session status", value: "Signed in as naya@example.com", badge: "Verified" },
+            { label: "Payment security", value: "Tokenized cards and bank accounts", badge: "Encrypted" },
+            { label: "Auth method", value: "Email session + server-side authorization", badge: null },
           ].map((row) => (
             <div key={row.label} className="flex flex-col gap-2 py-3 border-b border-white/5 last:border-0 sm:flex-row sm:items-center sm:justify-between">
               <span className="text-white/30 text-sm font-sans">{row.label}</span>
@@ -98,15 +98,15 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      {/* MiniPay */}
+      {/* Payments */}
       <div className="rounded-2xl p-4 space-y-4 glass sm:p-5">
         <div className="flex items-center gap-2">
-          <Smartphone className="w-4 h-4 text-white/40" />
-          <h3 className="font-serif text-base font-semibold text-white">MiniPay</h3>
+          <CreditCard className="w-4 h-4 text-white/40" />
+          <h3 className="font-serif text-base font-semibold text-white">Payments</h3>
           <Badge variant="mint" dot className="ml-auto">Connected</Badge>
         </div>
         <p className="text-white/35 text-xs font-sans">
-          Your MiniPay wallet is connected. Transactions are gasless via ERC-2771 meta-transactions.
+          Your default payment method is tokenized and used only for scheduled group contributions.
         </p>
       </div>
 

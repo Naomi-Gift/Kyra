@@ -33,8 +33,8 @@ export default function AnalyticsPage() {
       {/* Metrics grid */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 lg:gap-4">
         {[
-          { label: "Txns this month", value: 4820, prefix: "", suffix: "" },
-          { label: "cUSD collected", value: 85400, prefix: "$", suffix: "" },
+          { label: "Items this month", value: 4820, prefix: "", suffix: "" },
+          { label: "Cash collected", value: 85400, prefix: "$", suffix: "" },
           { label: "Groups active", value: 47, prefix: "", suffix: "" },
           { label: "On-time rate", value: 98, prefix: "", suffix: "%" },
         ].map((m) => (
@@ -55,7 +55,7 @@ export default function AnalyticsPage() {
         ))}
       </div>
 
-      {/* x402 Premium section */}
+      {/* Premium section */}
       <div className="rounded-2xl p-4 space-y-4 glass-gold sm:p-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -63,10 +63,10 @@ export default function AnalyticsPage() {
               Premium Analytics
             </h3>
             <p className="text-white/35 text-xs font-sans">
-              Powered by x402 protocol · pay $0.10 per view
+              Advanced retention, completion, and member behavior insights
             </p>
           </div>
-          <Badge variant="gold">x402</Badge>
+          <Badge variant="gold">Pro</Badge>
         </div>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {premiumMetrics.map((m) => (
@@ -88,7 +88,7 @@ export default function AnalyticsPage() {
           ))}
         </div>
         <button className="w-full py-2.5 rounded-xl bg-gold-500/10 border border-gold-500/20 text-gold-300 text-sm font-sans hover:bg-gold-500/20 transition-colors">
-          Unlock premium — pay $0.10 cUSD via x402
+          Unlock premium analytics
         </button>
       </div>
     </div>

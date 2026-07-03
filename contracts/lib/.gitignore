@@ -1,4 +1,0 @@
-# Foundry dependencies are installed via `forge install` or `forge build`.
-# Do not commit the lib/ directory except for this file.
-*
-!.gitignore

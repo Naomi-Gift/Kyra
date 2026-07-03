@@ -153,8 +153,8 @@ export function HeroSection() {
             className="mx-auto max-w-2xl pt-1 text-base leading-relaxed text-white/50 font-sans font-light sm:pt-2 sm:text-lg"
           >
             Kyra is a savings circle app where every member contributes,
-            everyone gets a turn with the full pot, and nothing is left to trust
-            — because it all runs on-chain.
+            everyone gets a turn with the full pot, and payments, reminders,
+            and payouts run from a clean backend.
           </motion.p>
         </motion.div>
 
@@ -201,7 +201,7 @@ export function HeroSection() {
           animate="show"
           className="flex flex-col items-center justify-center gap-3 text-white/30 text-xs font-sans sm:flex-row sm:flex-wrap sm:gap-6"
         >
-          {["No signup required", "Zero fees", "Non-custodial"].map((point) => (
+          {["Fast signup", "Automated payments", "Clear records"].map((point) => (
             <motion.span
               key={point}
               variants={fadeUp}

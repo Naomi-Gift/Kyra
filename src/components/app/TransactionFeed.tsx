@@ -17,7 +17,7 @@ const initialTxs: Tx[] = [
   { id: "t1", type: "collect", description: "Contribution — Family Circle",    amount: "+$25.00",  address: "Maria S.",  time: "2 min ago",  positive: true  },
   { id: "t2", type: "release", description: "Payout sent — Colleagues Fund",   amount: "+$400.00", address: "James K.",  time: "14 min ago", positive: true  },
   { id: "t3", type: "collect", description: "Contribution — City Savers",      amount: "+$100.00", address: "Aisha K.",  time: "1 hr ago",   positive: true  },
-  { id: "t4", type: "cycle",   description: "New cycle — Family Circle",        amount: "—",        address: "Agent",     time: "2 hr ago",   positive: null  },
+  { id: "t4", type: "cycle",   description: "New cycle — Family Circle",        amount: "—",        address: "Kyra",      time: "2 hr ago",   positive: null  },
   { id: "t5", type: "collect", description: "Contribution — Family Circle",    amount: "+$25.00",  address: "David M.",  time: "3 hr ago",   positive: true  },
   { id: "t6", type: "release", description: "Payout sent — Family Circle",     amount: "+$125.00", address: "Tom W.",    time: "1 day ago",  positive: true  },
 ];

@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Users, BarChart3, Settings, Bot, Home, Wallet } from "lucide-react";
+import { LayoutDashboard, Users, BarChart3, Settings, Bot, Home, CreditCard } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { clsx } from "clsx";
 
@@ -9,8 +9,8 @@ const nav = [
   { href: "/app",              label: "Dashboard",  icon: LayoutDashboard },
   { href: "/app/groups",       label: "Groups",     icon: Users           },
   { href: "/app/analytics",    label: "Analytics",  icon: BarChart3       },
-  { href: "/app/agent",        label: "Agent",      icon: Bot             },
-  { href: "/app/wallet",       label: "Wallet",     icon: Wallet          },
+  { href: "/app/automation",   label: "Automation", icon: Bot             },
+  { href: "/app/account",      label: "Account",    icon: CreditCard      },
   { href: "/app/settings",     label: "Settings",   icon: Settings        },
 ];
 
@@ -59,7 +59,7 @@ export function AppSidebar() {
               >
                 Kyra
               </motion.span>
-              <span className="text-white/25 text-[10px] font-sans">on Celo Mainnet</span>
+              <span className="text-white/25 text-[10px] font-sans">payments backend</span>
             </div>
           </Link>
         </div>
@@ -116,7 +116,7 @@ export function AppSidebar() {
           })}
         </nav>
 
-      {/* Agent status card */}
+      {/* Automation status card */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
