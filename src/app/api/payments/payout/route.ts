@@ -1,68 +1,45 @@
 import { NextResponse } from "next/server";
 import { sendTransfer, SUB_ACCOUNT_ID } from "@/lib/nomba/client";
-import {
-  getPaymentMethod,
-  getPayoutRecord,
-  listGroups,
-  resetPayoutForRetry,
-  savePayoutRecord,
-  updatePayoutStatus,
-} from "@/lib/backend/store";
+import { getPaymentMethod, getPayoutRecord, listGroups, resetPayoutForRetry, savePayoutRecord, updatePayoutStatus } from "@/lib/backend/store";
+import { getUserId, UNAUTHORIZED } from "@/lib/backend/session";
+
+export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
+  const userId = await getUserId();
+  if (!userId) return UNAUTHORIZED();
+
   let body: { groupId?: string; memberId?: string; round?: number; amountNgn?: number };
-  try {
-    body = await request.json();
-  } catch {
+  try { body = await request.json(); } catch {
     return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
   }
 
   const { groupId, memberId, round, amountNgn } = body;
-
   if (!groupId || !memberId || round == null || !amountNgn) {
-    return NextResponse.json(
-      { error: "groupId, memberId, round, and amountNgn are required." },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "groupId, memberId, round, and amountNgn are required." }, { status: 400 });
   }
 
-  const groups = listGroups();
-  const group = groups.find((g) => g.id === groupId);
-  if (!group) return NextResponse.json({ error: "Group not found." }, { status: 404 });
+  const groups = listGroups(userId);
+  const group  = groups.find((g) => g.id === groupId);
+  if (!group)  return NextResponse.json({ error: "Group not found." },  { status: 404 });
 
   const member = group.members.find((m) => m.id === memberId);
-  if (!member) return NextResponse.json({ error: "Member not found in group." }, { status: 404 });
+  if (!member) return NextResponse.json({ error: "Member not found." }, { status: 404 });
 
-  const paymentMethod = getPaymentMethod(memberId);
+  const paymentMethod = getPaymentMethod(userId, memberId);
   if (!paymentMethod) {
-    return NextResponse.json(
-      { error: "No bank account on file for this member." },
-      { status: 422 }
-    );
+    return NextResponse.json({ error: "No bank account on file for this member." }, { status: 422 });
   }
 
-  const reference = `payout:${groupId}:${round}`;
+  const reference  = `payout:${groupId}:${round}`;
   const amountKobo = Math.round(amountNgn * 100);
 
-  // Idempotency — return existing record unless it's failed (retry path)
-  const existing = getPayoutRecord(reference);
+  const existing = getPayoutRecord(userId, reference);
   if (existing) {
-    if (existing.status !== "failed") {
-      return NextResponse.json({ payout: existing });
-    }
-    // Retry: reset status to pending and re-call Nomba with same reference
-    resetPayoutForRetry(reference);
+    if (existing.status !== "failed") return NextResponse.json({ payout: existing });
+    resetPayoutForRetry(userId, reference);
   } else {
-    // First attempt — save pending record BEFORE calling Nomba
-    savePayoutRecord({
-      reference,
-      groupId,
-      memberId,
-      round,
-      amountKobo,
-      status: "pending",
-      createdAt: new Date().toISOString(),
-    });
+    savePayoutRecord(userId, { reference, groupId, memberId, round, amountKobo, status: "pending", createdAt: new Date().toISOString() });
   }
 
   try {
@@ -77,19 +54,15 @@ export async function POST(request: Request) {
     });
 
     const updated = updatePayoutStatus(
-      reference,
+      userId, reference,
       nombaRes.data.status === "success" ? "success" : "pending",
       nombaRes.data.sessionId
     );
-
     return NextResponse.json({ payout: updated }, { status: 201 });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
     console.error("[payout] Nomba API error:", message);
-    updatePayoutStatus(reference, "failed");
-    return NextResponse.json(
-      { error: "Transfer failed.", detail: message },
-      { status: 502 }
-    );
+    updatePayoutStatus(userId, reference, "failed");
+    return NextResponse.json({ error: "Transfer failed.", detail: message }, { status: 502 });
   }
 }
