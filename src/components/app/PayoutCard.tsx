@@ -1,122 +1,140 @@
 "use client";
 import { CheckCircle2, XCircle, Clock, RefreshCw } from "lucide-react";
 import { motion } from "framer-motion";
-import { useState } from "react";
-import { toast } from "sonner";
 import type { PayoutRecord } from "@/lib/backend/types";
+import { Button } from "@/components/ui/Button";
 
 interface PayoutCardProps {
   record: PayoutRecord;
   memberName: string;
   groupName: string;
   onRetry: () => void;
+  retryLoading?: boolean;
 }
 
-export function PayoutCard({ record, memberName, groupName, onRetry }: PayoutCardProps) {
-  const [retrying, setRetrying] = useState(false);
+export function PayoutCard({
+  record,
+  memberName,
+  groupName,
+  onRetry,
+  retryLoading = false,
+}: PayoutCardProps) {
+  const amountFormatted = `₦${(record.amountKobo / 100).toLocaleString()}`;
 
-  const handleRetry = async () => {
-    setRetrying(true);
-    try {
-      await onRetry();
-    } finally {
-      setRetrying(false);
-    }
-  };
+  // ── Success ────────────────────────────────────────────────────────────────
+  if (record.status === "success") {
+    const sessionId = record.nombaSessionId
+      ? record.nombaSessionId.length > 20
+        ? `${record.nombaSessionId.slice(0, 20)}…`
+        : record.nombaSessionId
+      : null;
 
-  const statusConfig = {
-    success: {
-      icon: CheckCircle2,
-      color: "text-mint-400",
-      bg: "border-mint-400/20 bg-mint-400/5",
-      badge: "bg-mint-400/15 text-mint-400",
-      label: "Confirmed",
-    },
-    failed: {
-      icon: XCircle,
-      color: "text-coral-400",
-      bg: "border-coral-400/20 bg-coral-400/5",
-      badge: "bg-coral-400/15 text-coral-400",
-      label: "Failed",
-    },
-    pending: {
-      icon: Clock,
-      color: "text-gold-400",
-      bg: "border-gold-400/15 glass",
-      badge: "bg-gold-400/15 text-gold-400",
-      label: "Pending",
-    },
-  };
+    return (
+      <motion.div
+        layout
+        className="rounded-xl border border-mint-400/20 bg-mint-400/5 p-3"
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <CheckCircle2 className="w-4 h-4 text-mint-400 flex-shrink-0" />
+            <div className="min-w-0">
+              <p className="text-white/80 text-sm font-sans font-medium truncate">
+                {memberName}
+              </p>
+              <p className="text-white/35 text-xs font-sans truncate">{groupName}</p>
+            </div>
+          </div>
+          <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+            <span className="text-xs font-sans px-2 py-0.5 rounded-full bg-mint-400/15 text-mint-400">
+              Confirmed
+            </span>
+            <span className="text-white/60 text-sm font-mono font-medium">
+              {amountFormatted}
+            </span>
+          </div>
+        </div>
 
-  const cfg = statusConfig[record.status];
-  const Icon = cfg.icon;
-  const amountNgn = (record.amountKobo / 100).toLocaleString("en-NG", {
-    style: "currency",
-    currency: "NGN",
-    maximumFractionDigits: 2,
-  });
+        {sessionId && (
+          <p className="mt-2 text-white/20 text-[10px] font-mono">
+            session: {sessionId}
+          </p>
+        )}
 
+        <p className="mt-1.5 text-white/15 text-[10px] font-sans">
+          {new Date(record.createdAt).toLocaleString()}
+        </p>
+      </motion.div>
+    );
+  }
+
+  // ── Failed ─────────────────────────────────────────────────────────────────
+  if (record.status === "failed") {
+    return (
+      <motion.div
+        layout
+        className="rounded-xl border border-coral-400/20 bg-coral-400/5 p-3"
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <XCircle className="w-4 h-4 text-coral-400 flex-shrink-0" />
+            <div className="min-w-0">
+              <p className="text-white/80 text-sm font-sans font-medium truncate">
+                {memberName}
+              </p>
+              <p className="text-white/35 text-xs font-sans truncate">{groupName}</p>
+            </div>
+          </div>
+          <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+            <span className="text-xs font-sans px-2 py-0.5 rounded-full bg-coral-400/15 text-coral-400">
+              Failed
+            </span>
+            <span className="text-white/60 text-sm font-mono font-medium">
+              {amountFormatted}
+            </span>
+          </div>
+        </div>
+
+        <div className="mt-3">
+          <Button
+            variant="danger"
+            size="sm"
+            fullWidth
+            loading={retryLoading}
+            onClick={onRetry}
+          >
+            <RefreshCw className="w-3 h-3" />
+            Retry Payout
+          </Button>
+        </div>
+      </motion.div>
+    );
+  }
+
+  // ── Pending ────────────────────────────────────────────────────────────────
   return (
     <motion.div
       layout
-      className={`rounded-xl border p-3 ${cfg.bg}`}
+      className="rounded-xl border border-gold-400/15 glass p-3"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-2.5 min-w-0">
-          <Icon className={`w-4 h-4 flex-shrink-0 ${cfg.color}`} />
+          <Clock className="w-4 h-4 text-gold-400 animate-spin flex-shrink-0" />
           <div className="min-w-0">
             <p className="text-white/80 text-sm font-sans font-medium truncate">
-              {groupName} · Round {record.round}
+              {memberName}
             </p>
-            <p className="text-white/35 text-xs font-sans">→ {memberName}</p>
+            <p className="text-white/35 text-xs font-sans truncate">{groupName}</p>
           </div>
         </div>
         <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
-          <span className={`text-xs font-sans px-2 py-0.5 rounded-full ${cfg.badge}`}>
-            {cfg.label}
+          <span className="text-xs font-sans px-2 py-0.5 rounded-full bg-gold-400/15 text-gold-400">
+            Pending
           </span>
-          <span className="text-white/60 text-sm font-mono font-medium">{amountNgn}</span>
+          <span className="text-white/60 text-sm font-mono font-medium">
+            {amountFormatted}
+          </span>
         </div>
       </div>
-
-      {record.status === "success" && record.nombaSessionId && (
-        <p className="mt-2 text-white/20 text-[10px] font-mono">
-          session: {record.nombaSessionId}
-        </p>
-      )}
-
-      {record.status === "pending" && (
-        <div className="mt-2 flex items-center gap-1.5 text-white/25 text-xs font-sans">
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
-          >
-            <RefreshCw className="w-3 h-3" />
-          </motion.div>
-          Processing…
-        </div>
-      )}
-
-      {record.status === "failed" && (
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.97 }}
-          onClick={handleRetry}
-          disabled={retrying}
-          className="mt-3 w-full rounded-lg border border-coral-400/20 bg-coral-400/5 px-3 py-2 text-xs font-sans text-coral-400 hover:bg-coral-400/10 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-        >
-          {retrying ? (
-            <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }}>
-              <RefreshCw className="w-3 h-3" />
-            </motion.div>
-          ) : (
-            <RefreshCw className="w-3 h-3" />
-          )}
-          {retrying ? "Retrying…" : "Retry Payout"}
-        </motion.button>
-      )}
-
-      <p className="mt-1.5 text-white/15 text-[10px] font-mono truncate">ref: {record.reference}</p>
     </motion.div>
   );
 }

@@ -95,7 +95,9 @@ export function CollectionCard({ va, memberName, amountNgn }: CollectionCardProp
                 Copy
               </button>
             </div>
-            <p className="text-white/20 text-[10px] font-mono truncate">ref: {va.reference}</p>
+            <p className="text-white/20 text-[10px] font-mono">
+              ref: {va.reference.length > 20 ? `${va.reference.slice(0, 20)}…` : va.reference}
+            </p>
           </motion.div>
         )}
       </AnimatePresence>

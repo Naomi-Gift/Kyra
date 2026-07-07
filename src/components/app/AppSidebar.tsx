@@ -5,6 +5,11 @@ import { LayoutDashboard, Users, BarChart3, Settings, Bot, Home, CreditCard } fr
 import { motion, AnimatePresence } from "framer-motion";
 import { clsx } from "clsx";
 import { KyraLogo, KyraLogoAnimated } from "@/components/ui/KyraLogo";
+import { useAppData } from "@/components/app/AppDataProvider";
+
+type AutomationStatus = {
+  automation: { currentStatus: string; nextRunInMinutes: number };
+};
 
 const nav = [
   { href: "/app",              label: "Dashboard",  icon: LayoutDashboard },
@@ -17,6 +22,14 @@ const nav = [
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const { automation } = useAppData();
+  const nextRun = automation?.nextRunInMinutes;
+  const nextRunLabel = nextRun != null
+    ? nextRun < 60
+      ? `Next run in ${nextRun}m`
+      : `Next run in ${Math.round(nextRun / 60)}h`
+    : "Checking…";
+  const progressPct = nextRun != null ? Math.max(5, 100 - (nextRun / (24 * 60)) * 100) : 52;
 
   return (
     <>
@@ -122,11 +135,11 @@ export function AppSidebar() {
                 Active
               </span>
             </div>
-            <p className="text-white/55 text-xs font-sans">Next run in 11h 23m</p>
+            <p className="text-white/55 text-xs font-sans">{nextRunLabel}</p>
             <div className="h-1 bg-white/5 rounded-full overflow-hidden">
               <motion.div
                 initial={{ width: 0 }}
-                animate={{ width: "52%" }}
+                animate={{ width: `${progressPct}%` }}
                 transition={{ duration: 1.2, delay: 0.8, ease: [0.22, 1, 0.36, 1] }}
                 className="h-full bg-gradient-to-r from-gold-600 to-gold-400 rounded-full"
               />

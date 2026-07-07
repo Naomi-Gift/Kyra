@@ -11,7 +11,6 @@ const navLinks = [
   { href: "#how-it-works", label: "How it works" },
   { href: "#features",     label: "Features"     },
   { href: "#automation",   label: "Automation"    },
-  { href: "/app",          label: "Dashboard"     },
 ];
 
 export function Navbar() {
@@ -68,10 +67,17 @@ export function Navbar() {
 
         {/* CTA */}
         <div className="hidden md:flex items-center gap-3">
-          <Link href="/app">
+          <Link href="/auth/login">
+            <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}>
+              <Button variant="outline" size="sm">
+                Sign in
+              </Button>
+            </motion.div>
+          </Link>
+          <Link href="/auth/signup">
             <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}>
               <Button variant="primary" size="sm">
-                Launch App
+                Get started
               </Button>
             </motion.div>
           </Link>
@@ -135,10 +141,13 @@ export function Navbar() {
               ))}
               <motion.div
                 variants={{ hidden: { opacity: 0, x: -12 }, show: { opacity: 1, x: 0 } }}
-                className="pt-2"
+                className="pt-2 flex flex-col gap-2"
               >
-                <Link href="/app" onClick={() => setMobileOpen(false)}>
-                  <Button variant="primary" size="sm" fullWidth>Launch App</Button>
+                <Link href="/auth/login" onClick={() => setMobileOpen(false)}>
+                  <Button variant="outline" size="sm" fullWidth>Sign in</Button>
+                </Link>
+                <Link href="/auth/signup" onClick={() => setMobileOpen(false)}>
+                  <Button variant="primary" size="sm" fullWidth>Get started</Button>
                 </Link>
               </motion.div>
             </motion.div>

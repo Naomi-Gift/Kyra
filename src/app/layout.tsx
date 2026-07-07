@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Toaster } from "sonner";
+import { SessionProvider } from "@/components/providers/SessionProvider";
 
 export const metadata: Metadata = {
   title: "Kyra — Automated Savings Circles",
@@ -24,18 +25,20 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark grain" suppressHydrationWarning>
       <body className="font-sans antialiased" suppressHydrationWarning>
-        {children}
-        <Toaster
-          theme="dark"
-          toastOptions={{
-            style: {
-              background: "rgba(17,17,24,0.95)",
-              border: "1px solid rgba(251,191,36,0.2)",
-              color: "#e8e8f0",
-              fontFamily: "'DM Sans', sans-serif",
-            },
-          }}
-        />
+        <SessionProvider>
+          {children}
+          <Toaster
+            theme="dark"
+            toastOptions={{
+              style: {
+                background: "rgba(17,17,24,0.95)",
+                border: "1px solid rgba(251,191,36,0.2)",
+                color: "#e8e8f0",
+                fontFamily: "'DM Sans', sans-serif",
+              },
+            }}
+          />
+        </SessionProvider>
       </body>
     </html>
   );

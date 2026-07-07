@@ -41,52 +41,52 @@
   - [x] 7.3 Return `{ virtualAccounts, payoutRecords, lastUpdated, loading }`
   - [x] 7.4 Clean up timeout on unmount
 
-- [ ] 8. `<CollectionCard />` component
-  - [ ] 8.1 Create `src/components/app/CollectionCard.tsx`
-  - [ ] 8.2 Paid state: member name, green badge, bank + account number
-  - [ ] 8.3 Pending state: account number, bank, amount in NGN, copy button, reference truncated
-  - [ ] 8.4 Animate status change pending → paid with `framer-motion`
+- [x] 8. `<CollectionCard />` component
+  - [x] 8.1 Create `src/components/app/CollectionCard.tsx`
+  - [x] 8.2 Paid state: member name, green badge, bank + account number
+  - [x] 8.3 Pending state: account number, bank, amount in NGN, copy button, reference truncated
+  - [x] 8.4 Animate status change pending → paid with `framer-motion`
 
-- [ ] 9. `<PayoutCard />` component
-  - [ ] 9.1 Create `src/components/app/PayoutCard.tsx`
-  - [ ] 9.2 Success: recipient, NGN amount, session ID, confirmed timestamp
-  - [ ] 9.3 Failed: recipient, amount, **Retry Payout** button with loading + error state
-  - [ ] 9.4 Pending: recipient, amount, spinner
+- [x] 9. `<PayoutCard />` component
+  - [x] 9.1 Create `src/components/app/PayoutCard.tsx`
+  - [x] 9.2 Success: recipient, NGN amount, session ID, confirmed timestamp
+  - [x] 9.3 Failed: recipient, amount, **Retry Payout** button with loading + error state
+  - [x] 9.4 Pending: recipient, amount, spinner
 
-- [ ] 10. `<ReconciliationPanel />` component
-  - [ ] 10.1 Create `src/components/app/ReconciliationPanel.tsx`
-  - [ ] 10.2 Fetch `GET /api/payments/reconciliation` on mount, re-poll every 4s
-  - [ ] 10.3 Per-cycle section: collections table using `<CollectionCard />` + `<PayoutCard />`
-  - [ ] 10.4 "Send Payout" button when `allPaid === true` and no payout record — calls `POST /api/payments/payout`
-  - [ ] 10.5 Empty state for when no cycles have run yet
+- [x] 10. `<ReconciliationPanel />` component
+  - [x] 10.1 Create `src/components/app/ReconciliationPanel.tsx`
+  - [x] 10.2 Fetch `GET /api/payments/reconciliation` on mount, re-poll every 4s
+  - [x] 10.3 Per-cycle section: collections table using `<CollectionCard />` + `<PayoutCard />`
+  - [x] 10.4 "Send Payout" button when `allPaid === true` and no payout record — calls `POST /api/payments/payout`
+  - [x] 10.5 Empty state for when no cycles have run yet
 
-- [ ] 11. `<PaymentMethodForm />` component
-  - [ ] 11.1 Create `src/components/app/PaymentMethodForm.tsx`
-  - [ ] 11.2 Bank dropdown from `GET /api/banks`
-  - [ ] 11.3 Account number + account name inputs
-  - [ ] 11.4 Pre-fill from `GET /api/account/payment-method` on mount
-  - [ ] 11.5 Submit → `POST /api/account/payment-method` → success toast
+- [x] 11. `<PaymentMethodForm />` component
+  - [x] 11.1 Create `src/components/app/PaymentMethodForm.tsx`
+  - [x] 11.2 Bank dropdown from `GET /api/banks`
+  - [x] 11.3 Account number + account name inputs
+  - [x] 11.4 Pre-fill from `GET /api/account/payment-method` on mount
+  - [x] 11.5 Submit → `POST /api/account/payment-method` → success toast
 
-- [ ] 12. Wire components into existing pages
-  - [ ] 12.1 Groups page — use `usePaymentStatus`, show `<CollectionCard />` per member for groups in `collecting` status
-  - [ ] 12.2 Automation page — add `<ReconciliationPanel />` below worker logs
-  - [ ] 12.3 Account page — add `<PaymentMethodForm />` in a "Payment Method" section
+- [x] 12. Wire components into existing pages
+  - [x] 12.1 Groups page — use `usePaymentStatus`, show `<CollectionCard />` per member for groups in `collecting` status
+  - [x] 12.2 Automation page — add `<ReconciliationPanel />` below worker logs
+  - [x] 12.3 Account page — add `<PaymentMethodForm />` in a "Payment Method" section
 
-- [ ] 13. Replace `TransactionFeed` fake data with real activity polling
-  - [ ] 13.1 Remove `setInterval` fake loop from `TransactionFeed.tsx`
-  - [ ] 13.2 Add `useEffect` fetching `GET /api/activity` every 5s
-  - [ ] 13.3 Map `ActivityItem[]` to `Tx` display shape
-  - [ ] 13.4 Keep `AnimatePresence` animation — driven by real data
+- [x] 13. Replace `TransactionFeed` fake data with real activity polling
+  - [x] 13.1 Remove `setInterval` fake loop from `TransactionFeed.tsx`
+  - [x] 13.2 Add `useEffect` fetching `GET /api/activity` every 5s
+  - [x] 13.3 Map `ActivityItem[]` to `Tx` display shape
+  - [x] 13.4 Keep `AnimatePresence` animation — driven by real data
 
 - [ ] 14. End-to-end smoke tests
-  - [ ] 14.1 Create group via UI, call `POST /api/payments/collect` for each member — verify virtual accounts returned
-  - [ ] 14.2 POST fake `virtualaccount.credit` webhook via curl — verify `paidAt` set and activity logged
-  - [ ] 14.3 POST same webhook again — verify no duplicate activity entry (idempotency)
-  - [ ] 14.4 Call `POST /api/payments/payout` — verify `PayoutRecord { status: "pending" }` persisted before Nomba responds
-  - [ ] 14.5 POST `payout.success` webhook — verify record status → `success`, session ID recorded
-  - [ ] 14.6 POST `payout.failed` webhook — verify retry button appears in reconciliation panel
-  - [ ] 14.7 Poll `GET /api/payments/status` — verify changes appear within 5s in browser
-  - [ ] 14.8 Verify `GET /api/payments/reconciliation` returns correct grouped data
+  - [x] 14.1 Create group via UI, call `POST /api/payments/collect` for each member — verify virtual accounts returned
+  - [x] 14.2 POST fake `virtualaccount.credit` webhook via curl — verify `paidAt` set and activity logged
+  - [x] 14.3 POST same webhook again — verify no duplicate activity entry (idempotency)
+  - [x] 14.4 Call `POST /api/payments/payout` — verify `PayoutRecord { status: "pending" }` persisted before Nomba responds
+  - [~] 14.5 POST `payout.success` webhook — verify record status → `success`, session ID recorded
+  - [~] 14.6 POST `payout.failed` webhook — verify retry button appears in reconciliation panel
+  - [~] 14.7 Poll `GET /api/payments/status` — verify changes appear within 5s in browser
+  - [~] 14.8 Verify `GET /api/payments/reconciliation` returns correct grouped data
 
 ## Task Dependency Graph
 
@@ -105,7 +105,7 @@
 
 ## Notes
 
-- The in-memory store is intentional for the hackathon. All interfaces are designed to be swapped for a real database with no changes to the route handlers.
+- The in-memory store is intentional. All interfaces are designed to be swapped for a real database with no changes to the route handlers.
 - Nomba's sandbox does not send real webhooks — use curl to simulate them locally during smoke tests.
-- The `processedWebhookRefs` Set resets on server restart in dev (hot reload). This is acceptable for hackathon purposes; in production it would live in Redis.
+- The `processedWebhookRefs` Set resets on server restart in dev (hot reload). This is acceptable for  purposes; in production it would live in Redis.
 - All amounts displayed in the UI use NGN (÷ 100 from kobo). All Nomba API calls use kobo (× 100 from NGN).

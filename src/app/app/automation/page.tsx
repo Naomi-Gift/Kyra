@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Bot, Play, Clock, CheckCircle2, Terminal } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { ReconciliationPanel } from "@/components/app/ReconciliationPanel";
 import { toast } from "sonner";
 
 const automationLogs = [
@@ -160,6 +161,12 @@ export default function AutomationPage() {
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Payment Reconciliation */}
+      <div>
+        <h2 className="font-serif text-lg font-semibold text-white mb-3">Payment Reconciliation</h2>
+        <ReconciliationPanel />
       </div>
     </div>
   );

@@ -167,7 +167,7 @@ export function HeroSection() {
           className="flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center sm:gap-4"
         >
           <div ref={primaryRef}>
-            <Link href="/app">
+            <Link href="/auth/signup">
               <motion.div
                 whileHover={{ scale: 1.04 }}
                 whileTap={{ scale: 0.97 }}

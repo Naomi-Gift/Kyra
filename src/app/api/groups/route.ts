@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
 import { createGroup, listGroups } from "@/lib/backend/store";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
-  return NextResponse.json({ groups: listGroups() });
+  return NextResponse.json({ groups: listGroups() }, {
+    headers: { "Cache-Control": "no-store" },
+  });
 }
 
 export async function POST(request: Request) {

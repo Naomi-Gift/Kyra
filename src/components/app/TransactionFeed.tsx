@@ -1,7 +1,11 @@
 "use client";
 import { ArrowDownRight, ArrowUpRight, RefreshCw, Zap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useMemo } from "react";
+import type { ActivityItem } from "@/lib/backend/types";
+import { useAppData } from "@/components/app/AppDataProvider";
+
+type EnrichedActivity = ActivityItem & { groupName: string; memberName: string };
 
 type Tx = {
   id: string;
@@ -14,48 +18,52 @@ type Tx = {
 };
 
 const initialTxs: Tx[] = [
-  { id: "t1", type: "collect", description: "Contribution — Family Circle",    amount: "+$25.00",  address: "Maria S.",  time: "2 min ago",  positive: true  },
-  { id: "t2", type: "release", description: "Payout sent — Colleagues Fund",   amount: "+$400.00", address: "James K.",  time: "14 min ago", positive: true  },
-  { id: "t3", type: "collect", description: "Contribution — City Savers",      amount: "+$100.00", address: "Aisha K.",  time: "1 hr ago",   positive: true  },
-  { id: "t4", type: "cycle",   description: "New cycle — Family Circle",        amount: "—",        address: "Kyra",      time: "2 hr ago",   positive: null  },
-  { id: "t5", type: "collect", description: "Contribution — Family Circle",    amount: "+$25.00",  address: "David M.",  time: "3 hr ago",   positive: true  },
-  { id: "t6", type: "release", description: "Payout sent — Family Circle",     amount: "+$125.00", address: "Tom W.",    time: "1 day ago",  positive: true  },
+  { id: "t1", type: "collect", description: "Contribution — Family Circle",   amount: "+₦25.00",   address: "Maria S.",  time: "2 min ago",  positive: true  },
+  { id: "t2", type: "release", description: "Payout sent — Colleagues Fund",  amount: "+₦400.00",  address: "James K.",  time: "14 min ago", positive: true  },
+  { id: "t3", type: "collect", description: "Contribution — City Savers",     amount: "+₦100.00",  address: "Aisha K.",  time: "1 hr ago",   positive: true  },
+  { id: "t4", type: "cycle",   description: "New cycle — Family Circle",       amount: "—",         address: "Kyra",      time: "2 hr ago",   positive: null  },
+  { id: "t5", type: "collect", description: "Contribution — Family Circle",   amount: "+₦25.00",   address: "David M.",  time: "3 hr ago",   positive: true  },
+  { id: "t6", type: "release", description: "Payout sent — Family Circle",    amount: "+₦125.00",  address: "Tom W.",    time: "1 day ago",  positive: true  },
 ];
 
-const typeIcon   = { collect: Zap, release: ArrowUpRight, cycle: RefreshCw };
-const typeStyle  = {
+function mapActivityToTx(item: EnrichedActivity): Tx {
+  const type: Tx["type"] =
+    item.type === "contribution" ? "collect" :
+    item.type === "payout"       ? "release" :
+                                   "cycle";
+
+  const amount =
+    item.amount !== null
+      ? `+₦${item.amount.toLocaleString()}`
+      : "—";
+
+  const positive: boolean | null =
+    item.type === "contribution" || item.type === "payout" ? true : null;
+
+  return {
+    id:          item.id,
+    type,
+    description: item.description,
+    amount,
+    address:     item.memberName,
+    time:        new Date(item.occurredAt).toLocaleString(),
+    positive,
+  };
+}
+
+const typeIcon  = { collect: Zap, release: ArrowUpRight, cycle: RefreshCw };
+const typeStyle = {
   collect: "text-mint-400 bg-mint-400/10 border-mint-400/15",
   release: "text-gold-400 bg-gold-400/10 border-gold-400/20",
   cycle:   "text-violet-400 bg-violet-400/10 border-violet-400/15",
 };
 
-const names  = ["Sofia R.", "Marco P.", "Lena C.", "Ben A.", "Priya N."];
-const groups = ["Family Circle", "Colleagues Fund", "City Savers", "Weekend Crew"];
-
 export function TransactionFeed() {
-  const [txs,   setTxs]   = useState(initialTxs);
-  const [latest, setLatest] = useState(6);
-
-  useEffect(() => {
-    const t = setInterval(() => {
-      const n  = latest + 1;
-      const tp = Math.random() > 0.3 ? "collect" : "release";
-      const nm = names[Math.floor(Math.random() * names.length)];
-      const gr = groups[Math.floor(Math.random() * groups.length)];
-      const tx: Tx = {
-        id:          `t${n}`,
-        type:        tp as Tx["type"],
-        description: tp === "collect" ? `Contribution — ${gr}` : `Payout sent — ${gr}`,
-        amount:      `+$${(Math.random() * 120 + 20).toFixed(2)}`,
-        address:     nm,
-        time:        "just now",
-        positive:    true,
-      };
-      setTxs(prev => [tx, ...prev.slice(0, 5)]);
-      setLatest(n);
-    }, 4500);
-    return () => clearInterval(t);
-  }, [latest]);
+  const { activity } = useAppData();
+  const txs = useMemo(
+    () => (activity.length > 0 ? activity.map(mapActivityToTx) : initialTxs),
+    [activity]
+  );
 
   return (
     <motion.div

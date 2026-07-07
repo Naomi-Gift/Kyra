@@ -2,17 +2,29 @@
 import { useState } from "react";
 import { Bell, Plus } from "lucide-react";
 import { motion } from "framer-motion";
-import { DashboardStats }    from "@/components/app/DashboardStats";
-import { GroupsPanel }       from "@/components/app/GroupsPanel";
-import { SavingsChart }      from "@/components/app/SavingsChart";
-import { TransactionFeed }   from "@/components/app/TransactionFeed";
-import { CreateGroupModal }  from "@/components/app/CreateGroupModal";
-import { Button }            from "@/components/ui/Button";
-import { Badge }             from "@/components/ui/Badge";
-import { PageTransition }    from "@/components/ui/PageTransition";
+import { DashboardStats }   from "@/components/app/DashboardStats";
+import { GroupsPanel }      from "@/components/app/GroupsPanel";
+import { SavingsChart }     from "@/components/app/SavingsChart";
+import { TransactionFeed }  from "@/components/app/TransactionFeed";
+import { CreateGroupModal } from "@/components/app/CreateGroupModal";
+import { Button }           from "@/components/ui/Button";
+import { Badge }            from "@/components/ui/Badge";
+import { PageTransition }   from "@/components/ui/PageTransition";
+import { useAppData }       from "@/components/app/AppDataProvider";
 
 export default function AppDashboard() {
   const [createOpen, setCreateOpen] = useState(false);
+  const { automation } = useAppData();
+
+  const nextRunLabel = automation
+    ? automation.nextRunInMinutes < 60
+      ? `${automation.nextRunInMinutes}m`
+      : `${Math.round(automation.nextRunInMinutes / 60)}h`
+    : "—";
+
+  const lastRunLabel = automation
+    ? `${automation.latestRun.processedCollections} items processed · ${automation.latestRun.errors} errors`
+    : "Loading automation status…";
 
   return (
     <PageTransition>
@@ -28,7 +40,7 @@ export default function AppDashboard() {
           <div>
             <h1 className="font-serif text-2xl font-bold text-white sm:text-3xl">Dashboard</h1>
             <p className="text-white/35 text-sm font-sans mt-0.5">
-              Good morning · Automation ran 11h ago
+              {automation ? `Automation runs in ${nextRunLabel}` : "Loading…"}
             </p>
           </div>
           <div className="flex w-full items-center gap-3 sm:w-auto">
@@ -63,7 +75,7 @@ export default function AppDashboard() {
             <TransactionFeed />
           </div>
           <div>
-            <GroupsPanel />
+            <GroupsPanel onNewGroup={() => setCreateOpen(true)} />
           </div>
         </div>
 
@@ -77,18 +89,22 @@ export default function AppDashboard() {
         >
           <div className="flex items-center gap-3">
             <motion.div
-              animate={{ boxShadow: ["0 0 0px rgba(139,92,246,0)", "0 0 16px rgba(139,92,246,0.3)", "0 0 0px rgba(139,92,246,0)"] }}
+              animate={{
+                boxShadow: [
+                  "0 0 0px rgba(139,92,246,0)",
+                  "0 0 16px rgba(139,92,246,0.3)",
+                  "0 0 0px rgba(139,92,246,0)",
+                ],
+              }}
               transition={{ duration: 3, repeat: Infinity }}
               className="w-8 h-8 rounded-lg bg-violet-500/10 border border-violet-500/20 flex items-center justify-center text-sm"
             >
               ⚡
             </motion.div>
             <div>
-              <p className="text-white/60 text-sm font-sans">
-                Automation ran successfully · collected $550 across 3 groups
-              </p>
+              <p className="text-white/60 text-sm font-sans">{lastRunLabel}</p>
               <p className="text-white/25 text-xs font-sans">
-                All automated · 0 issues · 11h ago
+                All automated · next run in {nextRunLabel}
               </p>
             </div>
           </div>
