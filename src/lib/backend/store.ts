@@ -193,8 +193,19 @@ function makeEmptyStore(): UserStore {
 }
 
 // ─── Store registry ───────────────────────────────────────────────────────────
+//
+// Attached to `globalThis` so that Next.js hot-module-reload in dev doesn't
+// wipe the map on every file change. In production this is a no-op (each
+// serverless invocation still starts fresh — use a real DB for true
+// persistence there).
 
-const registry = new Map<string, UserStore>();
+declare global {
+  // eslint-disable-next-line no-var
+  var __kyraRegistry: Map<string, UserStore> | undefined;
+}
+
+const registry: Map<string, UserStore> =
+  globalThis.__kyraRegistry ?? (globalThis.__kyraRegistry = new Map());
 
 function getStore(userId: string): UserStore {
   if (!registry.has(userId)) {
